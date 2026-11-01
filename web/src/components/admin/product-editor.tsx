@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowDownIcon, ArrowLeftIcon, ArrowUpIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowLeftIcon, ArrowUpIcon, BasketIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 
 import type { Category } from "@/components/admin/categories";
 import { FormError } from "@/components/admin/form-error";
@@ -12,7 +12,7 @@ import { SettingsCard } from "@/components/admin/settings-card";
 import { Switch } from "@/components/admin/switch";
 import { useToast } from "@/components/admin/toast";
 import { Button } from "@/components/ui/button";
-import { adminSend, errorBody, type FieldErrors } from "@/lib/admin-api";
+import { adminSend, adminUpload, errorBody, errorDetail, type FieldErrors } from "@/lib/admin-api";
 import { paiseToRupees, rupeesToPaise } from "@/lib/format";
 import type { Product } from "@/lib/products";
 import { cn } from "@/lib/utils";
@@ -167,6 +167,14 @@ export function ProductEditor({ product, categories }: { product: Product | null
         </Field>
       </SettingsCard>
 
+      {product ? (
+        <PhotoCard product={product} />
+      ) : (
+        <SettingsCard title="Photo">
+          <p className="text-sm text-muted-foreground">Save the product first, then add its photo.</p>
+        </SettingsCard>
+      )}
+
       <SettingsCard title="Pack options">
         {fieldErrors.pack_options && <p className="text-error-foreground">{fieldErrors.pack_options}</p>}
         <ol className="flex flex-col gap-3">
@@ -307,6 +315,67 @@ export function ProductEditor({ product, categories }: { product: Product | null
         />
       </SettingsCard>
     </form>
+  );
+}
+
+/** Uploads, replaces or removes the photo straight away, apart from the form's Save. */
+function PhotoCard({ product }: { product: Product }) {
+  const router = useRouter();
+  const toast = useToast();
+  const input = useRef<HTMLInputElement>(null);
+  const [photoUrl, setPhotoUrl] = useState(product.photo_url);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function change(request: Promise<Response>, done: string) {
+    setPending(true);
+    setError(null);
+    const response = await request;
+    setPending(false);
+    if (!response.ok) {
+      setError(await errorDetail(response));
+      return;
+    }
+    setPhotoUrl(((await response.json()) as Product).photo_url);
+    toast(done);
+    router.refresh();
+  }
+
+  function onPick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) change(adminUpload(`/products/${product.id}/photo`, { photo: file }), "Photo saved");
+  }
+
+  return (
+    <SettingsCard title="Photo">
+      <div className="flex aspect-square w-full max-w-photo items-center justify-center overflow-hidden rounded-md border-hairline border-border bg-muted">
+        {photoUrl ? (
+          <img src={photoUrl} alt={`Photo of ${product.name}`} className="size-full object-cover" />
+        ) : (
+          <BasketIcon aria-label="No photo yet" className="size-12 text-muted-foreground" />
+        )}
+      </div>
+      {/* image/* lets phones offer the camera as well as the gallery; wide screens get a file picker. */}
+      <input ref={input} type="file" accept="image/*" hidden aria-label="Photo file" onChange={onPick} />
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" disabled={pending} onClick={() => input.current?.click()}>
+          {photoUrl ? "Replace photo" : "Add photo"}
+        </Button>
+        {photoUrl && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => change(adminSend("DELETE", `/products/${product.id}/photo`), "Photo removed")}
+          >
+            Remove
+          </Button>
+        )}
+      </div>
+      <FormError message={error} />
+      <p className="text-xs text-muted-foreground">Photos are resized automatically.</p>
+    </SettingsCard>
   );
 }
 

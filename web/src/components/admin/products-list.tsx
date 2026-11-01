@@ -139,8 +139,12 @@ export function ProductsList({
                 className="flex cursor-pointer flex-col gap-2 border-border p-4 not-first:border-t-hairline hover:bg-accent md:flex-row md:gap-6"
               >
                 <div className="flex min-w-0 items-start gap-3 md:w-2/5">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-md border-hairline border-border bg-muted">
-                    <BasketIcon aria-hidden className="size-6 text-muted-foreground" />
+                  <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md border-hairline border-border bg-muted">
+                    {product.thumbnail_url ? (
+                      <img src={product.thumbnail_url} alt="" className="size-full object-cover" />
+                    ) : (
+                      <BasketIcon aria-hidden className="size-6 text-muted-foreground" />
+                    )}
                   </span>
                   <span className="flex min-w-0 flex-col">
                     <span className="flex flex-wrap items-center gap-2">

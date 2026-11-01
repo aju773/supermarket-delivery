@@ -9,6 +9,9 @@ export type Product = {
   is_featured: boolean;
   is_visible: boolean;
   pack_options: PackOption[];
+  /** Stable URLs of the WebP photo and its thumbnail, or null for the placeholder. */
+  photo_url: string | null;
+  thumbnail_url: string | null;
 };
 
 /** Products shown per page of the admin list; matches the API's page size. */

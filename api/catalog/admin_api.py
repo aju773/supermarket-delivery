@@ -1,10 +1,12 @@
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from ninja import Router, Schema, Status
+from ninja import File, Router, Schema, Status
+from ninja.files import UploadedFile
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.security import django_auth
 
+from catalog import photos
 from catalog.models import Category, PackOption, Product
 
 # Every admin endpoint needs a staff session; django_auth also checks the CSRF token on writes.
@@ -143,6 +145,16 @@ class ProductOut(Schema):
     is_featured: bool
     is_visible: bool
     pack_options: list[PackOptionOut]
+    photo_url: str | None
+    thumbnail_url: str | None
+
+    @staticmethod
+    def resolve_photo_url(product: Product) -> str | None:
+        return product.photo.url if product.photo else None
+
+    @staticmethod
+    def resolve_thumbnail_url(product: Product) -> str | None:
+        return product.thumbnail.url if product.thumbnail else None
 
     @staticmethod
     def resolve_pack_options(product: Product) -> list[PackOption]:
@@ -254,6 +266,23 @@ def get_product(request, product_id: int):
 @router.put("/products/{product_id}", response={200: ProductOut, 400: dict})
 def change_product(request, product_id: int, data: ProductIn):
     return save_product(data, get_object_or_404(Product, id=product_id))
+
+
+@router.post("/products/{product_id}/photo", response={200: ProductOut, 400: dict})
+def upload_photo(request, product_id: int, photo: File[UploadedFile]):
+    product = get_object_or_404(products_with_options(), id=product_id)
+    try:
+        photos.set_photo(product, photo)
+    except photos.PhotoError as error:
+        return Status(400, {"detail": str(error)})
+    return Status(200, product)
+
+
+@router.delete("/products/{product_id}/photo", response=ProductOut)
+def remove_photo(request, product_id: int):
+    product = get_object_or_404(products_with_options(), id=product_id)
+    photos.remove_photo(product)
+    return product
 
 
 @router.patch("/pack-options/{option_id}", response=PackOptionOut)

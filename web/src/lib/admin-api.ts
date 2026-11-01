@@ -21,13 +21,24 @@ export function adminPost(path: string, body?: unknown): Promise<Response> {
 }
 
 /** Sends JSON to the admin API with any write method. */
-export async function adminSend(method: "POST" | "PUT" | "PATCH", path: string, body?: unknown): Promise<Response> {
+export function adminSend(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<Response> {
+  return send(method, path, { "Content-Type": "application/json" }, JSON.stringify(body ?? {}));
+}
+
+/** POSTs files as a multipart form, e.g. `{ photo: file }`; the browser sets the content type. */
+export function adminUpload(path: string, files: Record<string, File>): Promise<Response> {
+  const form = new FormData();
+  for (const [field, file] of Object.entries(files)) form.append(field, file);
+  return send("POST", path, {}, form);
+}
+
+async function send(method: string, path: string, headers: HeadersInit, body: BodyInit): Promise<Response> {
   try {
     return await fetch(`/api/admin${path}`, {
       method,
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": await csrfToken() },
-      body: JSON.stringify(body ?? {}),
+      headers: { ...headers, "X-CSRFToken": await csrfToken() },
+      body,
     });
   } catch {
     // Offline or the server is unreachable: report it like any other failed request.

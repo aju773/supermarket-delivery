@@ -68,3 +68,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Uploaded product photos. The proxy serves /media straight from this folder.
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", BASE_DIR / "media"))
+MEDIA_URL = "/media/"

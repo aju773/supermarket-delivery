@@ -27,6 +27,9 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     is_featured = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
+    # Optional photo, set through catalog.photos: a full-size WebP and its thumbnail.
+    photo = models.FileField(upload_to="products/", blank=True)
+    thumbnail = models.FileField(upload_to="products/", blank=True)
 
     class Meta:
         ordering = ["name", "id"]

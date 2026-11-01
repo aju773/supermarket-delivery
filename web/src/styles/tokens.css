@@ -155,6 +155,7 @@
   --container-form: 32rem; /* single-column admin forms */
   --container-settings: 52rem; /* admin settings cards */
   --container-sidebar: 15rem; /* admin sidebar and phone slide-out menu */
+  --container-photo: 16rem; /* product photo in the admin editor */
 
   /* Breakpoints: Tailwind's standard steps */
   --breakpoint-sm: 40rem;
