@@ -51,11 +51,16 @@ export function formatTimeOfDay(at: string, timeZone: string): string {
 
 /** "Placed today, 10:42 AM" or "Placed 2 Nov, 10:42 AM", in the shop timezone. */
 export function formatPlacedAt(at: string, timeZone: string, now: Date = new Date()): string {
-  const placed = new Date(at);
+  return `Placed ${formatDayAndTime(at, timeZone, now)}`;
+}
+
+/** "today, 10:42 AM" or "2 Nov, 10:42 AM", in the shop timezone. */
+export function formatDayAndTime(at: string, timeZone: string, now: Date = new Date()): string {
+  const moment = new Date(at);
   const day = new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" });
   const date = new Intl.DateTimeFormat("en-IN", { timeZone, day: "numeric", month: "short" });
-  const when = day.format(placed) === day.format(now) ? "today" : date.format(placed);
-  return `Placed ${when}, ${formatTimeOfDay(at, timeZone)}`;
+  const when = day.format(moment) === day.format(now) ? "today" : date.format(moment);
+  return `${when}, ${formatTimeOfDay(at, timeZone)}`;
 }
 
 function clockTime(moment: Date, timeZone: string): string {

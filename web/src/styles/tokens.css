@@ -105,6 +105,9 @@
   --color-status-delivered-foreground: var(--palette-green-800);
   --color-status-cancelled: var(--palette-grey-200);
   --color-status-cancelled-foreground: var(--palette-grey-800);
+  /* Grey tags beside the status badge: "After hours", "Call to confirm". */
+  --color-tag: var(--palette-grey-200);
+  --color-tag-foreground: var(--palette-grey-800);
 
   /* Type: Inter, self-hosted through @fontsource-variable/inter */
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
