@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "shop",
+    "staff",
 ]
 
 MIDDLEWARE = [
@@ -53,5 +54,16 @@ LANGUAGE_CODE = "en-in"
 TIME_ZONE = "UTC"
 USE_I18N = False
 USE_TZ = True
+
+# Staff stay signed in on the shop phone for about a month.
+SESSION_COOKIE_AGE = 30 * 24 * 60 * 60
+SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG
+
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

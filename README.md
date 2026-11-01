@@ -13,6 +13,12 @@ docker compose up --build
 
 The site is at http://localhost:8090 (`PROXY_PORT` in `.env`). The proxy sends `/api` to Django and everything else to Next.js.
 
+The staff admin is at http://localhost:8090/admin. Create the first Staff Member from the command line; after that, staff add each other from the admin:
+
+```bash
+docker compose exec api python manage.py createsuperuser --email ""
+```
+
 ## Tests and checks
 
 ```bash

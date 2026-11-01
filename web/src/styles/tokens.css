@@ -39,10 +39,13 @@
   --palette-blue-800: #1e40af;
   --palette-purple-100: #f3e8ff;
   --palette-purple-800: #6b21a8;
+  --palette-red-50: #fef2f2;
+  --palette-red-200: #fecaca;
   --palette-red-700: #b91c1c;
 
   --palette-shadow: rgb(26 26 26 / 0.08);
   --palette-shadow-strong: rgb(26 26 26 / 0.16);
+  --palette-overlay: rgb(26 26 26 / 0.4);
 }
 
 @theme {
@@ -79,6 +82,17 @@
   --color-topbar-ring: var(--palette-white);
   --color-brand: var(--palette-green-700);
   --color-brand-foreground: var(--palette-white);
+  /* Error messages: red text in a pale red box. */
+  --color-error: var(--palette-red-50);
+  --color-error-foreground: var(--palette-red-700);
+  --color-error-border: var(--palette-red-200);
+  /* Admin sidebar (and the phone slide-out menu built from it). */
+  --color-sidebar: var(--palette-grey-50);
+  --color-sidebar-foreground: var(--palette-grey-900);
+  --color-sidebar-active: var(--palette-grey-200);
+  --color-sidebar-active-foreground: var(--palette-grey-900);
+  /* Dims the page behind the phone slide-out menu. */
+  --color-overlay: var(--palette-overlay);
   --color-status-new: var(--palette-amber-100);
   --color-status-new-foreground: var(--palette-amber-800);
   --color-status-confirmed: var(--palette-blue-100);
@@ -137,6 +151,9 @@
   --spacing: 0.25rem;
   --spacing-tap: 2.75rem; /* 44 px minimum tap target */
   --container-content: 80rem;
+  --container-auth: 24rem; /* admin login card */
+  --container-form: 32rem; /* single-column admin forms */
+  --container-sidebar: 15rem; /* admin sidebar and phone slide-out menu */
 
   /* Breakpoints: Tailwind's standard steps */
   --breakpoint-sm: 40rem;
@@ -163,7 +180,9 @@
   /* Stacking layers, lowest first */
   --layer-topbar: 30;
   --layer-cartbar: 40;
+  --layer-tabbar: 40; /* admin bottom tab bar; never on the same page as the cart bar */
   --layer-sheet: 50;
+  --layer-menu: 55;
   --layer-dialog: 60;
   --layer-toast: 70;
 }
@@ -173,6 +192,12 @@
 }
 @utility z-cartbar {
   z-index: var(--layer-cartbar);
+}
+@utility z-tabbar {
+  z-index: var(--layer-tabbar);
+}
+@utility z-menu {
+  z-index: var(--layer-menu);
 }
 @utility z-sheet {
   z-index: var(--layer-sheet);
@@ -192,6 +217,14 @@
 @utility border-hairline {
   border-style: solid;
   border-width: var(--border-width-hairline);
+}
+@utility border-r-hairline {
+  border-right-style: solid;
+  border-right-width: var(--border-width-hairline);
+}
+@utility border-t-hairline {
+  border-top-style: solid;
+  border-top-width: var(--border-width-hairline);
 }
 @utility border-b-hairline {
   border-bottom-style: solid;
