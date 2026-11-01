@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export type StaffMember = { username: string };
 
@@ -30,6 +30,7 @@ export async function adminGet<T>(path: string): Promise<T> {
     cache: "no-store",
   });
   if (response.status === 401) redirect("/admin/login");
+  if (response.status === 404) notFound();
   if (!response.ok) throw new Error(`Admin request ${path} failed: ${response.status}`);
   return response.json();
 }

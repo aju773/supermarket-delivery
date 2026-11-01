@@ -1,29 +1,11 @@
 """Categories through the admin API: add, rename, reorder, hide and unhide."""
 
 import pytest
-from django.contrib.auth.models import User
 from django.test import Client
 
+from catalog.testing import send
+
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def staff():
-    """A logged-in Staff Member's browser, enforcing CSRF like a real one."""
-    User.objects.create_user(username="priya", password="correct horse battery")
-    client = Client(enforce_csrf_checks=True)
-    client.get("/api/admin/auth/csrf")
-    send(client, "post", "/api/admin/auth/login", {"username": "priya", "password": "correct horse battery"})
-    return client
-
-
-def send(client, method, path, data=None):
-    return getattr(client, method)(
-        path,
-        data=data or {},
-        content_type="application/json",
-        headers={"X-CSRFToken": client.cookies["csrftoken"].value},
-    )
 
 
 def add_category(client, name):
