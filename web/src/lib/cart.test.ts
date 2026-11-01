@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { type CartLine, parseCart, quantityOf, setQuantity, summarise } from "./cart.ts";
+import { applyChanges, type CartLine, parseCart, quantityOf, setQuantity, summarise } from "./cart.ts";
 
 const tomato: CartLine = {
   packOptionId: 1,
@@ -59,4 +59,17 @@ test("stored carts are parsed defensively", () => {
   assert.deepEqual(parseCart('{"a":1}'), []);
   // Malformed lines and non-positive quantities are dropped; the rest survive.
   assert.deepEqual(parseCart(JSON.stringify([tomato, { packOptionId: "x" }, { ...atta, quantity: 0 }])), [tomato]);
+});
+
+test("applying checkout changes takes the new prices and drops lines that can't be ordered", () => {
+  const milk: CartLine = { ...tomato, packOptionId: 3, productName: "Milk", label: "500 ml" };
+  const cart = applyChanges(
+    [tomato, atta, milk],
+    [
+      { pack_option_id: 1, kind: "price_changed", old_price_paise: 2000, new_price_paise: 2400 },
+      { pack_option_id: 2, kind: "out_of_stock", old_price_paise: null, new_price_paise: null },
+      { pack_option_id: 3, kind: "unavailable", old_price_paise: null, new_price_paise: null },
+    ],
+  );
+  assert.deepEqual(cart, [{ ...tomato, pricePaise: 2400 }]);
 });

@@ -66,6 +66,24 @@ export function summarise(
   };
 }
 
+/** What checkout's 409 says changed since a line was added. */
+export type CartChange = {
+  pack_option_id: number;
+  kind: "price_changed" | "out_of_stock" | "unavailable";
+  old_price_paise: number | null;
+  new_price_paise: number | null;
+};
+
+/** The Cart after the customer accepts the changes: new prices taken, lines that can't be ordered removed. */
+export function applyChanges(cart: CartLine[], changes: CartChange[]): CartLine[] {
+  return cart.flatMap((line) => {
+    const change = changes.find((c) => c.pack_option_id === line.packOptionId);
+    if (!change) return [line];
+    if (change.kind === "price_changed" && change.new_price_paise !== null) return [{ ...line, pricePaise: change.new_price_paise }];
+    return [];
+  });
+}
+
 function isCartLine(value: unknown): value is CartLine {
   if (typeof value !== "object" || value === null) return false;
   const line = value as Record<string, unknown>;

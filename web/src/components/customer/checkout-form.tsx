@@ -1,14 +1,15 @@
 "use client";
 
 import { ArrowLeftIcon, ClockIcon, ShoppingCartIcon } from "@phosphor-icons/react/ssr";
+import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
 
 import { FinalAmountNote } from "@/components/customer/final-amount-note";
 import { Button } from "@/components/ui/button";
-import { type ShopTerms, summarise } from "@/lib/cart";
-import { clearCart, useCart, useCartLoaded } from "@/lib/cart-store";
+import { applyChanges, type CartChange, type CartLine, type ShopTerms, summarise } from "@/lib/cart";
+import { clearCart, replaceCart, useCart, useCartLoaded } from "@/lib/cart-store";
 import type { CustomerDetails, PaymentMethod } from "@/lib/customer";
 import { loadCustomerDetails, rememberOrder } from "@/lib/customer-store";
 import { formatRupees } from "@/lib/format";
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 type Area = { id: number; name: string };
 type FieldErrors = Partial<Record<string, string>>;
+type Submitted = { details: CustomerDetails; note: string };
 
 const inputClass =
   "block min-h-tap w-full rounded-md border-hairline border-input bg-background px-3 py-2 text-input aria-invalid:border-destructive";
@@ -71,11 +73,40 @@ function DetailsForm({ shop, areas, closedNotice }: { shop: ShopTerms; areas: Ar
   const [error, setError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  // Price and stock changes from the server, with the details they came back for, until the customer decides.
+  const [pending, setPending] = useState<{ changes: CartChange[]; submitted: Submitted; lines: CartLine[] } | null>(null);
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const text = (name: string) => String(form.get(name) ?? "");
-    const areaId = Number(text("delivery_area_id")) || null;
+    void placeOrder(
+      {
+        details: {
+          name: text("name").trim(),
+          phone: text("phone").trim(),
+          deliveryAreaId: Number(text("delivery_area_id")) || null,
+          address: text("address").trim(),
+          landmark: text("landmark").trim(),
+          paymentMethod,
+        },
+        note: text("note"),
+      },
+      cart,
+    );
+  }
+
+  function confirmChanges() {
+    if (!pending) return;
+    // The lines the popup describes, not whatever another tab may have changed since.
+    const updated = applyChanges(pending.lines, pending.changes);
+    replaceCart(updated);
+    setPending(null);
+    // With nothing left to order, the page shows the empty Cart instead.
+    if (updated.length > 0) void placeOrder(pending.submitted, updated);
+  }
+
+  async function placeOrder({ details, note }: Submitted, lines: CartLine[]) {
     setPlacing(true);
     setError(null);
     try {
@@ -83,14 +114,14 @@ function DetailsForm({ shop, areas, closedNotice }: { shop: ShopTerms; areas: Ar
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: text("name"),
-          phone: text("phone"),
-          delivery_area_id: areaId,
-          address: text("address"),
-          landmark: text("landmark"),
-          note: text("note"),
-          payment_method: paymentMethod,
-          lines: cart.map((line) => ({
+          name: details.name,
+          phone: details.phone,
+          delivery_area_id: details.deliveryAreaId,
+          address: details.address,
+          landmark: details.landmark,
+          note,
+          payment_method: details.paymentMethod,
+          lines: lines.map((line) => ({
             pack_option_id: line.packOptionId,
             quantity: line.quantity,
             price_paise: line.pricePaise,
@@ -99,23 +130,18 @@ function DetailsForm({ shop, areas, closedNotice }: { shop: ShopTerms; areas: Ar
       });
       const body = await response.json().catch(() => ({}));
       if (response.status === 201) {
-        rememberOrder(
-          {
-            name: text("name").trim(),
-            phone: text("phone").trim(),
-            deliveryAreaId: areaId,
-            address: text("address").trim(),
-            landmark: text("landmark").trim(),
-            paymentMethod,
-          },
-          body.token,
-        );
+        rememberOrder(details, body.token);
         clearCart();
         router.push(`/orders/${body.token}?placed=1`);
         return;
       }
-      setErrors(body.errors ?? {});
-      setError(body.detail ?? "Something went wrong. Please try again.");
+      if (response.status === 409) {
+        setErrors({});
+        setPending({ changes: body.changes, submitted: { details, note }, lines });
+      } else {
+        setErrors(body.errors ?? {});
+        setError(body.detail ?? "Something went wrong. Please try again.");
+      }
     } catch {
       setError("Couldn't reach the shop. Check your connection and try again.");
     }
@@ -243,6 +269,16 @@ function DetailsForm({ shop, areas, closedNotice }: { shop: ShopTerms; areas: Ar
           {placing ? "Placing order…" : `Place order · ${formatRupees(summary.totalPaise)}`}
         </Button>
       </div>
+
+      {pending && (
+        <ChangesDialog
+          cart={pending.lines}
+          changes={pending.changes}
+          shop={shop}
+          onConfirm={confirmChanges}
+          onGoBack={() => router.push("/cart")}
+        />
+      )}
     </form>
   );
 }
@@ -279,5 +315,74 @@ function Field({
         </p>
       )}
     </div>
+  );
+}
+
+const CHANGE_NOTES = {
+  out_of_stock: "Out of stock, removed from order",
+  unavailable: "No longer available, removed from order",
+} as const;
+
+/** The popup listing what changed since the items were added, with the new total. */
+function ChangesDialog({
+  cart,
+  changes,
+  shop,
+  onConfirm,
+  onGoBack,
+}: {
+  cart: CartLine[];
+  changes: CartChange[];
+  shop: ShopTerms;
+  onConfirm: () => void;
+  onGoBack: () => void;
+}) {
+  const updated = applyChanges(cart, changes);
+  return (
+    <Dialog.Root open onOpenChange={(open) => !open && onGoBack()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-dialog bg-overlay" />
+        <Dialog.Content className="fixed inset-x-4 top-1/2 z-dialog mx-auto flex max-h-dvh w-auto max-w-form -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-lg bg-card p-6 shadow-md">
+          <Dialog.Title className="text-xl font-semibold">Some items changed</Dialog.Title>
+          <Dialog.Description className="text-muted-foreground">
+            Prices or stock changed since you added these items. Please check before placing your order.
+          </Dialog.Description>
+          <ul className="flex flex-col gap-3">
+            {changes.map((change) => {
+              const line = cart.find((l) => l.packOptionId === change.pack_option_id);
+              return (
+                <li key={change.pack_option_id} className="flex flex-col">
+                  <span className="font-medium">{line ? `${line.productName} · ${line.label}` : "An item"}</span>
+                  {change.kind === "price_changed" ? (
+                    <span className="text-sm text-muted-foreground">
+                      Price changed: <s>{formatRupees(change.old_price_paise ?? 0)}</s> →{" "}
+                      <span className="font-semibold text-foreground">{formatRupees(change.new_price_paise ?? 0)}</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm text-error-foreground">{CHANGE_NOTES[change.kind]}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {updated.length > 0 ? (
+            <div className="flex justify-between border-t-hairline border-border pt-4 text-lg">
+              <span className="text-muted-foreground">New total</span>
+              <span className="font-bold">{formatRupees(summarise(updated, shop).totalPaise)}</span>
+            </div>
+          ) : (
+            <p className="border-t-hairline border-border pt-4">Nothing in your cart can be ordered now.</p>
+          )}
+          <div className="flex flex-col gap-3">
+            <Button type="button" variant="brand" onClick={onConfirm} className="w-full">
+              {updated.length > 0 ? "Confirm and place order" : "Update cart"}
+            </Button>
+            <Button type="button" variant="outline" onClick={onGoBack} className="w-full">
+              Go back
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

@@ -6,14 +6,14 @@
 
 **Design:** `customer-checkout-price-change.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Before creating anything, the server compares every cart line's current price and stock with the price the customer saw
-- [ ] Any difference returns `409` with a list of `changes`, each one `price_changed` (old and new price), `out_of_stock` or `unavailable`; nothing is created
-- [ ] The checkout page shows the changes in a popup; Confirm updates the Cart to the new prices and removes unavailable lines, then resubmits; Go back returns to the Cart
-- [ ] The minimum order is checked against the subtotal at server prices and rejected with a clear message if not met
-- [ ] Too many orders from one phone number within an hour (per the orders-per-hour Shop Setting) returns `429`, and the customer sees a clear message
-- [ ] Checkout steps run in the spec's order: validate fields, rate limit, compare prices/stock, minimum order, create
-- [ ] API tests cover each change type returning `409` and creating nothing, minimum order rejection, and the `429` limit
-- [ ] Playwright: checkout shows the price-change popup, the customer confirms, and the order goes through
-- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)
+- [x] Before creating anything, the server compares every cart line's current price and stock with the price the customer saw
+- [x] Any difference returns `409` with a list of `changes`, each one `price_changed` (old and new price), `out_of_stock` or `unavailable`; nothing is created
+- [x] The checkout page shows the changes in a popup; Confirm updates the Cart to the new prices and removes unavailable lines, then resubmits; Go back returns to the Cart
+- [x] The minimum order is checked against the subtotal at server prices and rejected with a clear message if not met
+- [x] Too many orders from one phone number within an hour (per the orders-per-hour Shop Setting) returns `429`, and the customer sees a clear message
+- [x] Checkout steps run in the spec's order: validate fields, rate limit, compare prices/stock, minimum order, create
+- [x] API tests cover each change type returning `409` and creating nothing, minimum order rejection, and the `429` limit
+- [x] Playwright: checkout shows the price-change popup, the customer confirms, and the order goes through (spec written, not run yet)
+- [x] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

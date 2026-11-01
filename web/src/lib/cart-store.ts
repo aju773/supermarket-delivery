@@ -44,6 +44,11 @@ export function setCartQuantity(item: CartItem, quantity: number): void {
   save(setQuantity(getSnapshot(), item, quantity));
 }
 
+/** Replaces every line, after the customer accepts checkout's price and stock changes. */
+export function replaceCart(lines: CartLine[]): void {
+  save(lines);
+}
+
 /** Empties the Cart, after an Order is placed. */
 export function clearCart(): void {
   save(EMPTY);

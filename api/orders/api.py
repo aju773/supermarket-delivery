@@ -1,10 +1,22 @@
 from datetime import datetime
+from typing import Literal
 
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 from ninja.responses import Status
 
-from orders.checkout import CartLineIn, CustomerDetails, all_orderable, customer_errors, lines_error, place_order
+from orders.checkout import (
+    CartLineIn,
+    CustomerDetails,
+    cart_changes,
+    customer_errors,
+    lines_error,
+    minimum_order_error,
+    normalise_phone,
+    over_hourly_limit,
+    place_order,
+)
 from orders.models import Order
 from shop.models import ShopSettings
 
@@ -41,17 +53,43 @@ class Problem(Schema):
     errors: dict[str, str] = {}
 
 
-@router.post("/checkout", response={201: Placed, 422: Problem}, auth=None)
+class Change(Schema):
+    pack_option_id: int
+    kind: Literal["price_changed", "out_of_stock", "unavailable"]
+    old_price_paise: int | None
+    new_price_paise: int | None
+
+
+class Changes(Schema):
+    detail: str
+    changes: list[Change]
+
+
+@router.post("/checkout", response={201: Placed, 409: Changes, 422: Problem, 429: Problem}, auth=None)
 def checkout(request, data: CheckoutIn):
-    """Places an Order from the Cart and customer details, or returns field errors."""
+    """Places an Order from the Cart and customer details, or says what stops it, in the spec's order of checks."""
     details = CustomerDetails(**data.dict(exclude={"lines"}))
     lines = [CartLineIn(**line.dict()) for line in data.lines]
     if errors := customer_errors(details):
         return Status(422, {"detail": FIX_ERRORS, "errors": errors})
     if error := lines_error(lines):
         return Status(422, {"detail": error})
-    if not all_orderable(lines):
-        return Status(422, {"detail": "Some items in your cart can no longer be ordered. Go back to the cart and remove them."})
+    with transaction.atomic():
+        # Locking the one Shop Settings row runs checkouts one at a time, so a price can't change and a second
+        # order from the same phone can't land between the checks below and creating the Order.
+        ShopSettings.load()
+        shop = ShopSettings.objects.select_for_update().get(id=ShopSettings.SINGLETON_ID)
+        return checked_checkout(details, lines, shop)
+
+
+def checked_checkout(details: CustomerDetails, lines: list[CartLineIn], shop: ShopSettings):
+    if over_hourly_limit(normalise_phone(details.phone), shop):
+        limit = shop.orders_per_hour_limit
+        return Status(429, {"detail": f"This phone number has reached the limit of {limit} orders an hour. Please try again later, or call the shop."})
+    if changes := cart_changes(lines):
+        return Status(409, {"detail": "Some items changed since you added them.", "changes": changes})
+    if error := minimum_order_error(lines, shop):
+        return Status(422, {"detail": error})
     order = place_order(details, lines)
     return Status(201, {"number": order.number, "token": order.public_token})
 

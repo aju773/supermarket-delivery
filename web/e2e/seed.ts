@@ -19,5 +19,12 @@ product = Product.objects.create(category=category, name="${product}")
 PackOption.objects.create(product=product, code="basmati-${id}", label="5 kg", price_paise=25000)
 DeliveryArea.objects.create(name="${area}")
 `);
-  return { product, area };
+  return { product, area, code: `basmati-${id}` };
+}
+
+export function setPrice(code: string, pricePaise: number) {
+  djangoShell(`
+from catalog.models import PackOption
+PackOption.objects.filter(code="${code}").update(price_paise=${pricePaise})
+`);
 }

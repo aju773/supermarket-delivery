@@ -16,6 +16,15 @@ OPEN = datetime(2026, 11, 2, 6, 30, tzinfo=UTC)  # 12:00 in Kolkata
 CLOSED = datetime(2026, 11, 2, 18, 30, tzinfo=UTC)  # 00:00 in Kolkata
 
 
+@pytest.fixture(autouse=True)
+def no_minimum_or_hourly_limit():
+    """These tests aren't about the safeguards in test_checkout_safeguards.py."""
+    shop = ShopSettings.load()
+    shop.minimum_order_paise = 0
+    shop.orders_per_hour_limit = 100
+    shop.save()
+
+
 @pytest.fixture
 def area():
     return DeliveryArea.objects.create(name="Gandhi Nagar")

@@ -2,6 +2,8 @@
 
 import re
 from dataclasses import dataclass
+from typing import Literal
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -66,16 +68,53 @@ def lines_error(lines: list[CartLineIn]) -> str | None:
     return None
 
 
-def all_orderable(lines: list[CartLineIn]) -> bool:
-    """Whether every line's Pack Option is shown to customers and in stock."""
-    orderable = PackOption.objects.filter(
-        id__in=[line.pack_option_id for line in lines],
+@dataclass
+class CartChange:
+    """Something that differs from what the customer saw: `price_changed`, `out_of_stock` or `unavailable`."""
+
+    pack_option_id: int
+    kind: Literal["price_changed", "out_of_stock", "unavailable"]
+    old_price_paise: int | None = None
+    new_price_paise: int | None = None
+
+
+def cart_changes(lines: list[CartLineIn]) -> list[CartChange]:
+    """Every line whose Pack Option is no longer on sale, out of stock, or at a different price than the one seen."""
+    on_sale = PackOption.objects.filter(
         is_visible=True,
-        in_stock=True,
         product__is_visible=True,
         product__category__is_visible=True,
-    )
-    return orderable.count() == len(lines)
+    ).in_bulk([line.pack_option_id for line in lines])
+    changes = []
+    for line in lines:
+        option = on_sale.get(line.pack_option_id)
+        if option is None:
+            changes.append(CartChange(line.pack_option_id, "unavailable"))
+        elif not option.in_stock:
+            changes.append(CartChange(line.pack_option_id, "out_of_stock"))
+        elif option.price_paise != line.price_paise:
+            changes.append(CartChange(line.pack_option_id, "price_changed", line.price_paise, option.price_paise))
+    return changes
+
+
+def over_hourly_limit(phone: str, shop: ShopSettings) -> bool:
+    """Whether this phone number has already placed the Shop Settings' orders-per-hour limit in the last hour."""
+    since = timezone.now() - timedelta(hours=1)
+    return Order.objects.filter(phone=phone, created_at__gt=since).count() >= shop.orders_per_hour_limit
+
+
+def rupees(paise: int) -> str:
+    """₹200, or ₹24.50 when there are paise."""
+    return f"₹{paise // 100}" if paise % 100 == 0 else f"₹{paise / 100:.2f}"
+
+
+def minimum_order_error(lines: list[CartLineIn], shop: ShopSettings) -> str | None:
+    """Checked after cart_changes, so the prices seen are the current ones."""
+    subtotal = sum(line.price_paise * line.quantity for line in lines)
+    if subtotal >= shop.minimum_order_paise:
+        return None
+    shortfall = shop.minimum_order_paise - subtotal
+    return f"The minimum order is {rupees(shop.minimum_order_paise)}. Add {rupees(shortfall)} more to place your order."
 
 
 def is_first_time_customer(phone: str) -> bool:
@@ -84,7 +123,7 @@ def is_first_time_customer(phone: str) -> bool:
 
 @transaction.atomic
 def place_order(details: CustomerDetails, lines: list[CartLineIn]) -> Order:
-    """Creates the Order at server prices. Price and stock checks against what the customer saw come in ticket 10."""
+    """Creates the Order at server prices, once the checks in the checkout endpoint have passed."""
     now = timezone.now()
     shop = ShopSettings.load()
     phone = normalise_phone(details.phone)
