@@ -6,13 +6,13 @@
 
 **Design:** `admin-order-detail.png`, `admin-order-detail-phone.png`, `customer-order-status.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Allowed transitions: `new → confirmed`, `confirmed → out_for_delivery`, `out_for_delivery → delivered`; staff can cancel from `new`, `confirmed` or `out_for_delivery`; the customer can cancel from `new` or `confirmed` through the token; everything else is rejected
-- [ ] Every transition is saved in a status history with the time and who made it (Staff Member or "customer")
-- [ ] Order detail shows the status history
-- [ ] Phones: a sticky button at the bottom for the next step ("Confirm order", "Out for delivery", "Mark delivered"); Cancel lives in a ⋯ menu; wide screens show the same actions in the page
-- [ ] Cancelling (staff or customer) asks for confirmation in a popup; successful changes show a toast ("Order confirmed")
-- [ ] Customer status page shows a Cancel button while the Order is New or Confirmed, otherwise "Call the shop"; the timeline shows the transition times
-- [ ] API tests cover every allowed and rejected transition, by staff and by the customer through the token, and that the history records who and when
-- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)
+- [x] Allowed transitions: `new → confirmed`, `confirmed → out_for_delivery`, `out_for_delivery → delivered`; staff can cancel from `new`, `confirmed` or `out_for_delivery`; the customer can cancel from `new` or `confirmed` through the token; everything else is rejected
+- [x] Every transition is saved in a status history with the time and who made it (Staff Member or "customer")
+- [x] Order detail shows the status history
+- [x] Phones: a sticky button at the bottom for the next step ("Confirm order", "Out for delivery", "Mark delivered"); Cancel lives in a ⋯ menu; wide screens show the same actions in the page
+- [x] Cancelling (staff or customer) asks for confirmation in a popup; successful changes show a toast ("Order confirmed")
+- [x] Customer status page shows a Cancel button while the Order is New or Confirmed, otherwise "Call the shop"; the timeline shows the transition times
+- [x] API tests cover every allowed and rejected transition, by staff and by the customer through the token, and that the history records who and when
+- [x] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { timeline } from "./order-timeline.ts";
+import { customerCanCancel, nextStep, staffCanCancel, timeline } from "./order-timeline.ts";
 
 const placed = "2026-11-02T06:30:00Z";
 
@@ -43,4 +43,22 @@ test("a cancelled order ends at Cancelled after the steps it reached", () => {
       ["Cancelled", true],
     ],
   );
+});
+
+test("staff move an order one step on with the matching button and toast", () => {
+  assert.deepEqual(nextStep("new"), { status: "confirmed", action: "Confirm order", done: "Order confirmed" });
+  assert.deepEqual(nextStep("confirmed"), {
+    status: "out_for_delivery",
+    action: "Out for delivery",
+    done: "Order out for delivery",
+  });
+  assert.deepEqual(nextStep("out_for_delivery"), { status: "delivered", action: "Mark delivered", done: "Order delivered" });
+  assert.equal(nextStep("delivered"), null);
+  assert.equal(nextStep("cancelled"), null);
+});
+
+test("staff can cancel until delivered; the customer only while new or confirmed", () => {
+  const statuses = ["new", "confirmed", "out_for_delivery", "delivered", "cancelled"] as const;
+  assert.deepEqual(statuses.filter(staffCanCancel), ["new", "confirmed", "out_for_delivery"]);
+  assert.deepEqual(statuses.filter(customerCanCancel), ["new", "confirmed"]);
 });

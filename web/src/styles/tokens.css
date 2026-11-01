@@ -155,6 +155,7 @@
   /* Spacing: Tailwind's standard steps (p-4 = 1rem), plus named sizes */
   --spacing: 0.25rem;
   --spacing-tap: 2.75rem; /* 44 px minimum tap target */
+  --spacing-tabbar: 4rem; /* room above the admin phone tab bar, for bars that sit on it */
   --container-content: 80rem;
   --container-auth: 24rem; /* admin login card */
   --container-form: 32rem; /* single-column admin forms */

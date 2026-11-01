@@ -6,7 +6,9 @@ from ninja import Router, Schema
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.security import django_auth
 
-from orders.models import Order
+from orders.api import Problem
+from orders.models import Order, StatusChange
+from orders.status import NotAllowed, change_status
 
 # Every admin endpoint needs a staff session; django_auth also checks the CSRF token on writes.
 router = Router(tags=["admin orders"], auth=django_auth)
@@ -50,6 +52,21 @@ class OrderLineOut(Schema):
         return line.total_paise
 
 
+class HistoryEntry(Schema):
+    status: Order.Status
+    at: datetime
+    # The Staff Member's username, or "customer" for checkout and cancelling through the Status Link.
+    by: str
+
+    @staticmethod
+    def resolve_at(change: StatusChange) -> datetime:
+        return change.changed_at
+
+    @staticmethod
+    def resolve_by(change: StatusChange) -> str:
+        return change.changed_by.username if change.changed_by else "customer"
+
+
 class OrderDetail(OrderSummary):
     phone: str
     address: str
@@ -59,6 +76,11 @@ class OrderDetail(OrderSummary):
     lines: list[OrderLineOut]
     subtotal_paise: int
     delivery_charge_paise: int
+    history: list[HistoryEntry]
+
+    @staticmethod
+    def resolve_history(order: Order) -> list:
+        return list(order.status_changes.all())
 
     @staticmethod
     def resolve_lines(order: Order) -> list:
@@ -84,6 +106,25 @@ def list_orders(request, status: Order.Status | None = None):
     return found
 
 
+class StatusIn(Schema):
+    status: Order.Status
+
+
+def order_detail(number: int) -> Order:
+    return get_object_or_404(orders().prefetch_related("lines", "status_changes__changed_by"), id=number)
+
+
 @router.get("/orders/{number}", response=OrderDetail)
 def get_order(request, number: int):
-    return get_object_or_404(orders().prefetch_related("lines"), id=number)
+    return order_detail(number)
+
+
+@router.post("/orders/{number}/status", response={200: OrderDetail, 409: Problem})
+def set_status(request, number: int, data: StatusIn):
+    """Moves the Order one step on, or cancels it; anything else is a 409."""
+    order = get_object_or_404(Order, id=number)
+    try:
+        change_status(order, data.status, by=request.user)
+    except NotAllowed as error:
+        return 409, {"detail": str(error)}
+    return order_detail(number)

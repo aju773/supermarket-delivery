@@ -26,3 +26,24 @@ export function timeline(status: OrderStatus, placedAt: string, history: StatusC
   const index = PROGRESS.findIndex((step) => step.status === status);
   return steps.map((step, position) => ({ ...step, done: position <= index, current: position === index }));
 }
+
+/** The staff's one-tap move for an Order: the button, and the toast once it worked. Same rules as the API. */
+export type NextStep = { status: OrderStatus; action: string; done: string };
+
+const NEXT_STEPS: Partial<Record<OrderStatus, NextStep>> = {
+  new: { status: "confirmed", action: "Confirm order", done: "Order confirmed" },
+  confirmed: { status: "out_for_delivery", action: "Out for delivery", done: "Order out for delivery" },
+  out_for_delivery: { status: "delivered", action: "Mark delivered", done: "Order delivered" },
+};
+
+export function nextStep(status: OrderStatus): NextStep | null {
+  return NEXT_STEPS[status] ?? null;
+}
+
+export function staffCanCancel(status: OrderStatus): boolean {
+  return status === "new" || status === "confirmed" || status === "out_for_delivery";
+}
+
+export function customerCanCancel(status: OrderStatus): boolean {
+  return status === "new" || status === "confirmed";
+}

@@ -11,6 +11,15 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+/** How each status reads in an Order's history: "Confirmed by priya". */
+export const HISTORY_LABELS: Record<OrderStatus, string> = {
+  new: "Placed",
+  confirmed: "Confirmed",
+  out_for_delivery: "Out for delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = { cash: "Cash", upi: "UPI" };
 
 /** One row of the staff orders list. Money is whole paise. */
@@ -33,6 +42,9 @@ export type AdminOrderLine = {
   line_total_paise: number;
 };
 
+/** One status change; `by` is a Staff Member's username or "customer". */
+export type HistoryEntry = { status: OrderStatus; at: string; by: string };
+
 /** One Order as the staff order detail page sees it. */
 export type AdminOrder = OrderSummary & {
   phone: string;
@@ -43,6 +55,7 @@ export type AdminOrder = OrderSummary & {
   lines: AdminOrderLine[];
   subtotal_paise: number;
   delivery_charge_paise: number;
+  history: HistoryEntry[];
 };
 
 export function isOrderStatus(value: string): value is OrderStatus {

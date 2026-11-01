@@ -18,6 +18,7 @@ from orders.checkout import (
     place_order,
 )
 from orders.models import Order
+from orders.status import NotAllowed, change_status
 from shop.models import ShopSettings
 
 router = Router(tags=["orders"])
@@ -125,6 +126,21 @@ class OrderStatus(Schema):
 @router.get("/{token}", response=OrderStatus, auth=None)
 def order_status(request, token: str):
     """One Order's status page data, found by its public token."""
+    return status_page(token)
+
+
+@router.post("/{token}/cancel", response={200: OrderStatus, 409: Problem}, auth=None)
+def cancel_order(request, token: str):
+    """The customer cancels their own Order through the Status Link, while it is New or Confirmed."""
+    order = get_object_or_404(Order, public_token=token)
+    try:
+        change_status(order, Order.Status.CANCELLED)
+    except NotAllowed as error:
+        return 409, {"detail": str(error)}
+    return status_page(token)
+
+
+def status_page(token: str) -> dict:
     order = get_object_or_404(Order.objects.prefetch_related("lines", "status_changes"), public_token=token)
     shop = ShopSettings.load()
     lines = order.lines.all()

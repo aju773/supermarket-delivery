@@ -22,7 +22,7 @@ def staff():
 
 
 def deliver(order):
-    # Status changes by staff arrive with ticket 12; until then a test sets the status directly.
+    # Setting the status directly keeps these tests independent of the allowed transitions.
     order.status = Order.Status.DELIVERED
     order.save()
 
@@ -122,6 +122,7 @@ def test_detail_has_everything_needed_to_pack_and_deliver(staff, client, area, t
         "subtotal_paise": 16550,
         "delivery_charge_paise": 2000,
         "total_paise": 18550,
+        "history": [{"status": "new", "at": body["placed_at"], "by": "customer"}],
     }
 
 
