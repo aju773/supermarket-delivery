@@ -16,10 +16,15 @@ async function csrfToken(): Promise<string> {
 }
 
 /** POSTs JSON to the admin API. Returns the response; callers read `detail` from error bodies. */
-export async function adminPost(path: string, body?: unknown): Promise<Response> {
+export function adminPost(path: string, body?: unknown): Promise<Response> {
+  return adminSend("POST", path, body);
+}
+
+/** Sends JSON to the admin API with any write method. */
+export async function adminSend(method: "POST" | "PUT" | "PATCH", path: string, body?: unknown): Promise<Response> {
   try {
     return await fetch(`/api/admin${path}`, {
-      method: "POST",
+      method,
       credentials: "same-origin",
       headers: { "Content-Type": "application/json", "X-CSRFToken": await csrfToken() },
       body: JSON.stringify(body ?? {}),
@@ -39,4 +44,18 @@ export async function errorDetail(response: Response): Promise<string> {
     // Not JSON: fall through.
   }
   return "Something went wrong. Please try again.";
+}
+
+/** Per-field messages from a 400 response, e.g. `{ phone: "Enter the shop phone number." }`. */
+export type FieldErrors = Record<string, string>;
+
+/** The error message and any field errors from a failed admin API response. */
+export async function errorBody(response: Response): Promise<{ detail: string; errors: FieldErrors }> {
+  try {
+    const body = await response.clone().json();
+    if (body.errors && typeof body.errors === "object") return { detail: await errorDetail(response), errors: body.errors };
+  } catch {
+    // Not JSON: fall through.
+  }
+  return { detail: await errorDetail(response), errors: {} };
 }

@@ -17,7 +17,7 @@ def shop_info(client):
 
 
 def set_hours(opening: time, closing: time, timezone: str = "Asia/Kolkata"):
-    # Arranged through the model until the Shop Settings admin endpoint exists (ticket 03).
+    # Through the model: the admin endpoint doesn't set the timezone or hours past midnight.
     shop_settings = ShopSettings.load()
     shop_settings.opening_time = opening
     shop_settings.closing_time = closing

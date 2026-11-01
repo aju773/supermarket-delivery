@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils import timezone
 from ninja import Router, Schema
 
-from shop.models import ShopSettings
+from shop.models import DeliveryArea, ShopSettings
 
 router = Router(tags=["shop"])
 
@@ -37,3 +37,14 @@ def shop_info(request):
         is_open=shop_settings.is_open_at(now),
         next_opening_at=shop_settings.next_opening_after(now),
     )
+
+
+class PublicArea(Schema):
+    id: int
+    name: str
+
+
+@router.get("/delivery-areas", response=list[PublicArea], auth=None)
+def delivery_areas(request):
+    """The active Delivery Areas in display order, for the checkout dropdown."""
+    return DeliveryArea.objects.filter(is_active=True)

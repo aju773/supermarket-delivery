@@ -22,3 +22,14 @@ export async function requireStaffMember(): Promise<StaffMember> {
   if (!staffMember) redirect("/admin/login");
   return staffMember;
 }
+
+/** GETs from the admin API on the server, as the signed-in Staff Member. */
+export async function adminGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${process.env.API_INTERNAL_URL}/api/admin${path}`, {
+    headers: { cookie: (await cookies()).toString() },
+    cache: "no-store",
+  });
+  if (response.status === 401) redirect("/admin/login");
+  if (!response.ok) throw new Error(`Admin request ${path} failed: ${response.status}`);
+  return response.json();
+}

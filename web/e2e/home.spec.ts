@@ -7,6 +7,7 @@ test("home page shows the shop info strip from Shop Settings", async ({ page }) 
 
   const info = page.getByRole("region", { name: "Shop info" });
   await expect(info).toContainText(/Open now|Closed now/);
-  await expect(info).toContainText("Delivery 8 AM – 9 PM");
-  await expect(info).toContainText("Min. order ₹200");
+  // Exact values are checked in settings.spec.ts, which changes them while other tests run.
+  await expect(info).toContainText(/Delivery \d.* (AM|PM) – \d.* (AM|PM)/);
+  await expect(info).toContainText(/Min\. order ₹\d/);
 });

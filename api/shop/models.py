@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo, available_timezones
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.functions import Lower
 
 
 def validate_timezone(value: str) -> None:
@@ -64,3 +65,20 @@ class ShopSettings(models.Model):
         if opening <= local:
             opening = datetime.combine(local.date() + timedelta(days=1), self.opening_time, tzinfo=self.zone)
         return opening
+
+
+class DeliveryArea(models.Model):
+    """A named area or colony the shop delivers to. Disabled areas are kept so past orders still point at them."""
+
+    name = models.CharField(max_length=100)
+    position = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+        constraints = [
+            models.UniqueConstraint(Lower("name"), name="delivery_area_unique_name"),
+        ]
+
+    def __str__(self) -> str:
+        return self.name

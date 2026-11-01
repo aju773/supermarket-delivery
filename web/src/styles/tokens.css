@@ -153,6 +153,7 @@
   --container-content: 80rem;
   --container-auth: 24rem; /* admin login card */
   --container-form: 32rem; /* single-column admin forms */
+  --container-settings: 52rem; /* admin settings cards */
   --container-sidebar: 15rem; /* admin sidebar and phone slide-out menu */
 
   /* Breakpoints: Tailwind's standard steps */
