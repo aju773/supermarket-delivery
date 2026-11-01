@@ -93,6 +93,8 @@
   --color-sidebar-active-foreground: var(--palette-grey-900);
   /* Dims the page behind the phone slide-out menu. */
   --color-overlay: var(--palette-overlay);
+  /* Grey placeholder blocks while catalog pages load; darker than the page so they show. */
+  --color-skeleton: var(--palette-grey-200);
   --color-status-new: var(--palette-amber-100);
   --color-status-new-foreground: var(--palette-amber-800);
   --color-status-confirmed: var(--palette-blue-100);
