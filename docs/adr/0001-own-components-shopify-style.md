@@ -1,0 +1,3 @@
+# Own components in a Shopify-like style, not Shopify Polaris
+
+The staff admin is modelled on the look of the Shopify admin, so the obvious move would be to use Shopify's own Polaris components and icons. We don't: Polaris's licence only allows use in apps that integrate or interoperate with Shopify, and requires stand-alone apps to look visually distinct from Shopify, and Polaris React is deprecated and archived. Instead we build the look ourselves with Tailwind CSS, shadcn/ui, Phosphor Icons and Inter, copying the general style (layout, greys, white cards, type) but none of Shopify's code, icons, illustrations or branding.

@@ -11,7 +11,8 @@ A local supermarket delivers groceries to houses nearby. Today every order arriv
 A mobile-friendly website for the shop with two sides:
 
 - **Customer site.** Customers browse the shop's full catalog with photos and prices, add items to a cart, enter their name, phone and address, and submit the order. Payment is cash or UPI at delivery. There are no accounts, no location services and no tracking. The customer gets an order number and a private status link, and can see past orders and reorder from the same phone.
-- **Staff admin.** Staff log in to a custom admin that is easy to use on a phone. A live orders list plays a loud sound when an order arrives or is cancelled. Staff confirm, edit and progress orders, keep the catalog up to date (prices, photos, in/out of stock), import products from a CSV file, bulk-upload photos, manage delivery settings, and manage staff accounts.
+- **Staff admin.** Staff log in to a custom admin that is easy to use on a phone. A live orders list plays a loud sound when an order arrives or is cancelled. Staff confirm, edit and progress orders, find any order by number or phone, keep the catalog up to date (prices, photos, in/out of stock), import products from a CSV file, bulk-upload photos, manage delivery settings, and manage staff accounts.
+- **Look and feel.** The admin follows the clean back-office style of the Shopify admin: near-black top bar with search, grey page, white rounded cards, a left sidebar on wide screens and a bottom tab bar on phones. The customer site shares the same fonts, colours, icons and cards, but uses the quick-delivery shopping layout Indian customers already know: a two-column product grid, one-tap Add that turns into a quantity counter, and a sticky cart bar.
 
 ## Domain Vocabulary
 
@@ -91,7 +92,7 @@ A mobile-friendly website for the shop with two sides:
 45. As a staff member, I want orders from first-time customers marked "Call to confirm", so that I phone new customers before packing.
 46. As a staff member, I want orders from repeat customers confirmed automatically, so that I don't waste time calling regulars.
 47. As a staff member, I want to filter the orders list by status, so that I can focus on what needs action.
-48. As a staff member, I want to see today's order count and total value at the top of the orders page, so that the owner knows how the day is going.
+48. As a staff member, I want four tiles at the top of the orders page (today's orders, today's sales, orders waiting to confirm, orders out for delivery), so that the owner knows how the day is going and staff see what needs action.
 49. As a staff member, I want an order detail page with the customer's name, phone (tap to call), area, address, landmark, note, payment method, items and total, so that I have everything needed to pack and deliver.
 50. As a staff member, I want to see whether an order was placed outside delivery hours, so that I can plan deliveries for opening time.
 51. As a staff member, I want to move an order through Confirmed → Out for delivery → Delivered with one tap each, so that the status stays accurate.
@@ -133,6 +134,26 @@ A mobile-friendly website for the shop with two sides:
 81. As a staff member, I want to change my own password, so that I can keep my account secure.
 82. As a staff member, I want to log out, so that a shared phone isn't left signed in.
 
+### Customer site look and feel
+
+83. As a customer, I want an Add button on each product card that turns into a − 1 + counter, so that I can change quantities without leaving the page.
+84. As a customer, I want a bar fixed to the bottom of the screen showing my item count, cart total and "View cart", so that checkout is always one tap away.
+85. As a customer, I want to tap the pack size on a card and choose from a panel that slides up listing every pack with its price, so that I can pick a size without leaving the list.
+86. As a customer, I want products with only one pack size to add straight from the card, so that I don't get an extra step.
+87. As a customer, I want to tap a product photo and see a larger photo with all its pack sizes, so that I can check the brand before buying.
+88. As a customer, I want a row of category buttons along the top of a category page, so that I can switch aisles without going back home.
+89. As a customer, I want my order status page to show a timeline (Placed, Confirmed, Out for delivery, Delivered) with times, so that I can see at a glance how far my order has got.
+90. As a customer on a computer, I want the same shop in a wider grid with a cart button in the top bar, so that ordering from a laptop works too.
+
+### Staff admin look and feel
+
+91. As a staff member, I want to search from the top bar for a product by name or code, or an order by order number or customer phone, so that I can answer "where's my order?" calls quickly.
+92. As a staff member on the shop phone, I want a bottom tab bar for Orders, Products, Settings and More, so that the pages I use most are one tap away.
+93. As a staff member, I want a count badge on Orders showing how many orders are New, so that I see waiting work from any page.
+94. As a staff member, I want each order's status shown as a coloured badge with its name, so that I can scan the list quickly.
+95. As a staff member on the shop phone, I want a large button at the bottom of an order for its next step (Confirm order, Out for delivery, Mark delivered), with Cancel tucked in a menu, so that I move orders along with my thumb and don't cancel by accident.
+96. As a staff member, I want a short message after each save and a confirmation popup before cancelling an order, deactivating staff or applying a CSV import, so that I know what happened and can't make hard-to-undo mistakes by accident.
+
 ## Implementation Decisions
 
 ### Architecture
@@ -173,7 +194,11 @@ A mobile-friendly website for the shop with two sides:
     - `new | confirmed → cancelled` (by the customer, through the token)
   - Every transition is saved in a status history with the time and who made it (staff member or "customer"). Invalid transitions are rejected.
   - Line edits (change quantity, remove a line, add or swap in a pack option at its current price) are allowed only in `new` or `confirmed`. The total is recalculated after each edit. The Original Request is never changed.
-  - Admin queries: the list filtered by status, and a polling endpoint that returns orders created or cancelled since a given cursor (the client polls about every 5 seconds and plays a sound on new or cancelled ones). The "today" summary counts orders created today and totals them, excluding cancelled ones.
+  - Admin queries:
+    - The list, filtered by status.
+    - Search by order number (exact) or customer phone (normalised the same way as at checkout).
+    - A polling endpoint that returns orders created or cancelled since a given cursor. The client polls about every 5 seconds and plays a sound on new or cancelled ones.
+    - The summary for the four tiles: today's order count and today's sales total (both counting orders created today and excluding cancelled ones), plus the current number of orders in `new` and in `out_for_delivery`. The `new` count also drives the Orders badge.
   - Public query: an order by public token (status, current lines, total, payment method, shop phone, whether it can be cancelled).
 - **Staff Accounts**: built on Django's user model, using the active flag.
   - Operations: list, create, reset password, change own password, deactivate, reactivate.
@@ -198,6 +223,56 @@ A mobile-friendly website for the shop with two sides:
   - **Layout:** mobile-first, with large tap targets.
   - **Alert sound:** needs a one-time "Start alerts" tap because browsers block sound until the user interacts with the page.
 
+### UI and UX
+
+- **Design system:**
+  - **Components:** Tailwind CSS with shadcn/ui components, copied into the project and restyled. Shopify's Polaris components, icons and illustrations are not used: their licence only covers apps that integrate with Shopify. We copy the general style, not Shopify's assets or branding.
+  - **Icons:** Phosphor Icons. Regular weight everywhere; fill weight for the active navigation item.
+  - **Font:** Inter, served from our own server (no outside font service). Numbers use tabular figures so prices and totals line up.
+  - **Type sizes:** 14 px body in the admin, 16 px body on the customer site, and 16 px for every form input so phones don't zoom in on focus.
+  - **Colours:** near-black top bar, light grey page, white cards with rounded corners and hairline borders, black main buttons. One accent colour (fresh green by default, or the shop's brand colour) for Add, the cart bar and success states.
+  - **Light mode only.**
+  - **Shared colour and type settings:** the admin and the customer site use the same colours, fonts, icons and components, so the two sides look like one product.
+- **Customer site:**
+  - **Top bar:** shop logo and name, call-the-shop button, link to "My orders". Wide screens add a cart button with a count.
+  - **Home:** search box, an info strip (open/closed now, delivery hours, minimum order), category tiles, and a "Popular" row of featured products.
+  - **Product cards:** two columns on phones, 4–6 on wide screens. Each shows photo (or a grey placeholder with a basket icon), name, pack label, price, and an Add button that turns into a − 1 + counter.
+  - **Pack sizes:**
+    - Product with more than one Pack Option: the card shows one pack with a ▾. Tapping it opens a panel that slides up from the bottom, listing every pack with its price and its own Add/counter.
+    - Product with one Pack Option: adds straight from the card.
+  - **Out of stock:** greyed out and labelled "Out of stock", with no Add button.
+  - **Product page:** large photo and the pack list. It has its own link.
+  - **Category page:** a row of category buttons along the top that scrolls sideways.
+  - **Cart bar:** fixed to the bottom on phones ("3 items · ₹245 · View cart"), shown whenever the Cart isn't empty.
+  - **Cart:** a full page with lines, minimum-order message, delivery charge, total and the "final amount confirmed at delivery" note.
+  - **Checkout:** one page with customer details (pre-filled), a short order summary and a sticky "Place order · ₹total" button. Price and stock changes from the server appear in a popup that lists them, with Confirm and Go back.
+  - **Status page:** a vertical timeline (Placed, Confirmed, Out for delivery, Delivered, or Cancelled) with times, then the current lines and total. At the bottom: Cancel while allowed, otherwise "Call the shop".
+- **Staff admin:**
+  - **Wide screens:** near-black top bar (shop name, global search, account menu) and a light grey left sidebar with icons: Orders (with a count badge of New orders), Products, Categories, Import, Settings, Staff.
+  - **Phones:** the sidebar becomes a slide-out menu behind ☰, plus a bottom tab bar: Orders, Products, Settings, More.
+  - **Global search:** finds Products by name or pack option code, and Orders by order number or customer phone. Results are grouped by type.
+  - **Landing page:** Orders.
+    - Four metric tiles: Today's orders, Today's sales, Waiting to confirm, Out for delivery.
+    - The "Start alerts" control and status filter buttons.
+    - The list itself: cards on phones (order number, name, area, total, time, status badge, "Call to confirm" tag), a table with the same columns on wide screens.
+  - **Status badges:** small rounded labels that always include the status name. New amber, Confirmed blue, Out for delivery purple, Delivered green, Cancelled grey. A separate grey "After hours" tag with a moon icon.
+  - **Order detail:**
+    - Wide screens use two columns. Left: the lines card (with Edit and totals), the Original Request beside the current lines when they differ, and status history. Right: the customer card with tap-to-call phone, area, address, landmark, note and payment method.
+    - Phones stack the same cards and add a sticky button for the next transition: "Confirm order", "Out for delivery" or "Mark delivered". Cancel lives in a ⋯ menu.
+  - **Products list:** thumbnail, name, category, and each Pack Option with its price and an in-stock switch right on the row. Search and a category filter at the top. Hidden products show a grey "Hidden" badge. Tapping a row opens the product editor.
+  - **Other screens** (login, categories, CSV import preview, bulk photos, settings, staff accounts, change password) use the same white cards on grey, the same tables/cards and the same feedback patterns.
+- **Feedback patterns (both sides):**
+  - Short toast messages after saves ("Product saved", "Order confirmed").
+  - Confirmation popups only for actions that are hard to undo: cancelling an Order, deactivating a Staff Member, applying a CSV import.
+  - Grey placeholder blocks (skeletons) while pages load, not spinners.
+  - Empty screens show an icon, one line of text and an action button.
+- **Accessibility baseline:**
+  - Tap targets of at least 44 px.
+  - Text contrast that meets WCAG AA.
+  - A visible focus outline on keyboard focus.
+  - A screen-reader label on every icon-only button.
+  - Status and prices never shown by colour alone.
+
 ### API contract notes
 
 - The checkout response is either `201` with the order number and public token, or `409` with a list of `changes`, or `422` with field errors. The rate limit returns `429`.
@@ -220,7 +295,9 @@ A mobile-friendly website for the shop with two sides:
     - First-Time Customer → `new`, repeat customer → `confirmed`
   - **Order state machine:** every allowed and rejected transition, by staff and by the customer through the token; status history recorded.
   - **Order edits:** allowed only in `new` and `confirmed`; totals recalculated; Original Request unchanged.
-  - **Live polling:** new and cancelled orders returned after the cursor. The today summary excludes cancelled orders and respects the shop timezone.
+  - **Live polling:** new and cancelled orders returned after the cursor.
+  - **Orders summary:** today's count and sales exclude cancelled orders and respect the shop timezone; the waiting-to-confirm and out-for-delivery counts match the current statuses.
+  - **Order search:** finds an order by exact order number and by phone in any accepted format; returns nothing for unknown values; rejects anonymous requests.
   - **Staff accounts:** admin endpoints reject anonymous requests and those without a CSRF token; the self-deactivation and last-active-account guards; deactivated users can't log in.
   - **CSV import:** the preview saves nothing; grouping; updates by code; all or nothing on errors.
   - **Bulk photos:** matching by code; unmatched files reported; images resized and converted.
@@ -229,7 +306,7 @@ A mobile-friendly website for the shop with two sides:
   - checkout shows the price-change prompt and resubmits
   - staff logs in, sees the new order appear in the live list, and moves it to Delivered
   - "My orders" and Reorder work from the stored tokens
-- **Not tested directly:** frontend component internals and styling.
+- **Not tested directly:** frontend component internals and styling. The Playwright flows run on a phone-sized screen, so they exercise the mobile layout (cart bar, pack-size panel, sticky next-step button) on the way.
 - **Prior art:** none yet. This is a new repository, so these tests set the pattern.
 
 ## Out of Scope
@@ -248,11 +325,15 @@ A mobile-friendly website for the shop with two sides:
 - Offers, discount codes and coupons
 - Sales reports beyond the "today" summary
 - A native mobile app
+- Dark mode
+- Shopify's Polaris components, icons, illustrations or branding
+- Custom illustrations for empty states
+- Sales or visitor charts on the admin (only the four Orders tiles)
 
 ## Further Notes
 
 - **Build order** (everything runs locally until step 7):
-  1. Base setup
+  1. Base setup, including the design system (shared colours and type, Inter, Phosphor, shadcn/ui) and both page shells: the customer top bar with cart bar, and the admin top bar with sidebar and bottom tab bar
   2. Catalog and settings, with their admin screens
   3. Customer site
   4. Orders admin
@@ -271,3 +352,4 @@ A mobile-friendly website for the shop with two sides:
 - **Still needed from the shop:**
   - **Billing software:** its name and whether it can export products to Excel or CSV. The CSV column format may need adapting to that export.
   - **Domain name:** needed at deployment.
+  - **Branding:** the shop's display name, its logo (if any) and its brand colour (if any; green is used until then).
