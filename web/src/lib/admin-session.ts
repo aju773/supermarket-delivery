@@ -33,3 +33,13 @@ export async function adminGet<T>(path: string): Promise<T> {
   if (!response.ok) throw new Error(`Admin request ${path} failed: ${response.status}`);
   return response.json();
 }
+
+/** Every item of a paginated admin list, fetching page after page. */
+export async function adminGetAll<T>(path: string): Promise<T[]> {
+  const items: T[] = [];
+  for (let page = 1; ; page++) {
+    const { items: pageItems, count } = await adminGet<{ items: T[]; count: number }>(`${path}?page=${page}`);
+    items.push(...pageItems);
+    if (pageItems.length === 0 || items.length >= count) return items;
+  }
+}

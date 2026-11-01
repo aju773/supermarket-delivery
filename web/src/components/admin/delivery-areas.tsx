@@ -1,11 +1,12 @@
 "use client";
 
 import { ArrowDownIcon, ArrowUpIcon, PlusIcon } from "@phosphor-icons/react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 
 import { FormError } from "@/components/admin/form-error";
-import { inputClass } from "@/components/admin/password-input";
+import { NameForm } from "@/components/admin/name-form";
 import { SettingsCard } from "@/components/admin/settings-card";
+import { Switch } from "@/components/admin/switch";
 import { useToast } from "@/components/admin/toast";
 import { Button } from "@/components/ui/button";
 import { adminSend, errorBody } from "@/lib/admin-api";
@@ -162,85 +163,5 @@ export function DeliveryAreas({ areas: initialAreas }: { areas: DeliveryArea[] }
         )}
       </ul>
     </SettingsCard>
-  );
-}
-
-function NameForm({
-  label,
-  initial,
-  submitLabel,
-  pending,
-  onSubmit,
-  onCancel,
-}: {
-  label: string;
-  initial: string;
-  submitLabel: string;
-  pending: boolean;
-  onSubmit: (name: string) => void;
-  onCancel: () => void;
-}) {
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    onSubmit(String(new FormData(event.currentTarget).get("name")));
-  }
-
-  return (
-    <form onSubmit={submit} className="flex w-full flex-wrap items-center gap-2">
-      <input
-        name="name"
-        aria-label={label}
-        defaultValue={initial}
-        autoFocus
-        required
-        maxLength={100}
-        className={cn(inputClass, "w-auto flex-1")}
-      />
-      <Button type="submit" size="sm" disabled={pending}>
-        {submitLabel}
-      </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-        Cancel
-      </Button>
-    </form>
-  );
-}
-
-function Switch({
-  label,
-  checked,
-  disabled,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  disabled: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className="inline-flex min-h-tap min-w-tap items-center justify-center disabled:opacity-50"
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "flex h-6 w-11 items-center rounded-full p-0.5 transition-colors",
-          checked ? "bg-brand" : "bg-input",
-        )}
-      >
-        <span
-          className={cn(
-            "size-5 rounded-full bg-card shadow-sm transition-transform",
-            checked ? "translate-x-5" : "translate-x-0",
-          )}
-        />
-      </span>
-    </button>
   );
 }
