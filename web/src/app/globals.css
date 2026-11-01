@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "../styles/tokens.css";
+
+/* Shared base styles for the customer site and the admin. Values come only from tokens.css. */
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    /* Tabular figures so prices and totals line up. */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: var(--text-input);
+  }
+
+  button,
+  [role="button"],
+  input:not([type="checkbox"], [type="radio"]),
+  select {
+    min-height: var(--spacing-tap);
+  }
+
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

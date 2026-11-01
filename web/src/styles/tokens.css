@@ -1,0 +1,199 @@
+/*
+ * Design tokens: the only place in the frontend where colours, sizes and other raw values live.
+ * Seeded once from the Stitch design system "Supermarket Delivery" (see docs/design/README.md);
+ * this file owns the values from now on and Stitch is not updated.
+ *
+ * Two layers:
+ *   1. Raw palette (:root, --palette-*). Components never use these directly.
+ *   2. Names by purpose (@theme). shadcn/ui's names keep their shadcn meaning (`accent` is the
+ *      subtle hover background, not the brand colour); ours are page, topbar, brand and status-*.
+ *
+ * `--*: initial` removes all of Tailwind's built-in theme, including its colour palette
+ * (ADR 0002), so a class like `bg-green-600` produces nothing. Spacing and breakpoints are
+ * redefined below on Tailwind's standard steps.
+ *
+ * `pnpm check:contrast` checks every text/background pair here against WCAG AA (4.5:1).
+ */
+
+:root {
+  --palette-white: #ffffff;
+  --palette-grey-50: #f7f7f7;
+  --palette-grey-100: #f1f1f1;
+  --palette-grey-200: #e3e3e3;
+  --palette-grey-300: #cccccc;
+  /* Muted text. #616161 keeps 5.5:1 on the grey page; lighter greys fail AA there. */
+  --palette-grey-600: #616161;
+  --palette-grey-800: #303030;
+  --palette-grey-900: #1a1a1a;
+
+  /* Stitch's brand green #16a34a is only 3.3:1 under white text (fails AA). #15803d passes
+     under white but is 4.4:1 as text on the grey page, so the brand colour is #157a3b
+     (5.4:1 under white, 4.8:1 on the page). */
+  --palette-green-100: #dcfce7;
+  --palette-green-700: #157a3b;
+  --palette-green-800: #166534;
+  --palette-amber-100: #fef3c7;
+  --palette-amber-800: #92400e;
+  --palette-blue-100: #dbeafe;
+  --palette-blue-700: #1d4ed8;
+  --palette-blue-800: #1e40af;
+  --palette-purple-100: #f3e8ff;
+  --palette-purple-800: #6b21a8;
+  --palette-red-700: #b91c1c;
+
+  --palette-shadow: rgb(26 26 26 / 0.08);
+  --palette-shadow-strong: rgb(26 26 26 / 0.16);
+}
+
+@theme {
+  --*: initial;
+
+  /* Colours: shadcn/ui names */
+  --color-background: var(--palette-white);
+  --color-foreground: var(--palette-grey-900);
+  --color-card: var(--palette-white);
+  --color-card-foreground: var(--palette-grey-900);
+  --color-popover: var(--palette-white);
+  --color-popover-foreground: var(--palette-grey-900);
+  --color-primary: var(--palette-grey-900);
+  --color-primary-foreground: var(--palette-white);
+  --color-secondary: var(--palette-grey-100);
+  --color-secondary-foreground: var(--palette-grey-900);
+  --color-muted: var(--palette-grey-100);
+  --color-muted-foreground: var(--palette-grey-600);
+  --color-accent: var(--palette-grey-50);
+  --color-accent-foreground: var(--palette-grey-900);
+  --color-destructive: var(--palette-red-700);
+  --color-destructive-foreground: var(--palette-white);
+  --color-border: var(--palette-grey-200);
+  --color-input: var(--palette-grey-300);
+  --color-ring: var(--palette-blue-700);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Colours: ours */
+  --color-page: var(--palette-grey-100);
+  --color-topbar: var(--palette-grey-900);
+  --color-topbar-foreground: var(--palette-white);
+  /* Focus outline on the dark top bar, where the blue ring is too dark to see. */
+  --color-topbar-ring: var(--palette-white);
+  --color-brand: var(--palette-green-700);
+  --color-brand-foreground: var(--palette-white);
+  --color-status-new: var(--palette-amber-100);
+  --color-status-new-foreground: var(--palette-amber-800);
+  --color-status-confirmed: var(--palette-blue-100);
+  --color-status-confirmed-foreground: var(--palette-blue-800);
+  --color-status-out: var(--palette-purple-100);
+  --color-status-out-foreground: var(--palette-purple-800);
+  --color-status-delivered: var(--palette-green-100);
+  --color-status-delivered-foreground: var(--palette-green-800);
+  --color-status-cancelled: var(--palette-grey-200);
+  --color-status-cancelled-foreground: var(--palette-grey-800);
+
+  /* Type: Inter, self-hosted through @fontsource-variable/inter */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --default-font-family: var(--font-sans);
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem; /* admin body */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; /* customer body */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  /* Every form input, so phones don't zoom in on focus. */
+  --text-input: 1rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0em;
+
+  /* Rounding */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem; /* cards */
+  --radius-full: 9999px;
+
+  /* Shadows and borders */
+  --shadow-sm: 0 1px 2px var(--palette-shadow);
+  --shadow-md: 0 4px 12px var(--palette-shadow-strong);
+  --border-width-hairline: 1px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Spacing: Tailwind's standard steps (p-4 = 1rem), plus named sizes */
+  --spacing: 0.25rem;
+  --spacing-tap: 2.75rem; /* 44 px minimum tap target */
+  --container-content: 80rem;
+
+  /* Breakpoints: Tailwind's standard steps */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  /* Animation timing */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-in-out);
+  --animate-pulse: pulse 2s var(--ease-in-out) infinite;
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Stacking layers, lowest first */
+  --layer-topbar: 30;
+  --layer-cartbar: 40;
+  --layer-sheet: 50;
+  --layer-dialog: 60;
+  --layer-toast: 70;
+}
+
+@utility z-topbar {
+  z-index: var(--layer-topbar);
+}
+@utility z-cartbar {
+  z-index: var(--layer-cartbar);
+}
+@utility z-sheet {
+  z-index: var(--layer-sheet);
+}
+@utility z-dialog {
+  z-index: var(--layer-dialog);
+}
+@utility z-toast {
+  z-index: var(--layer-toast);
+}
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+@utility duration-normal {
+  transition-duration: var(--duration-normal);
+}
+@utility border-hairline {
+  border-style: solid;
+  border-width: var(--border-width-hairline);
+}
+@utility border-b-hairline {
+  border-bottom-style: solid;
+  border-bottom-width: var(--border-width-hairline);
+}

@@ -11,9 +11,15 @@ Website for a local supermarket: customers browse the catalog and place delivery
 
 The current spec is `.scratch/delivery-v1/spec.md`.
 
+## Commands
+
+- Stack: `docker compose up --build` (needs `.env`, copied from `.env.example`); site on `http://localhost:8090`
+- API tests: `docker compose run --rm api pytest` (Postgres in Docker; no host database)
+- Web, from `web/`: `pnpm typecheck`, `pnpm check:tokens`, `pnpm check:contrast`, `pnpm test:unit`, `pnpm test:e2e` (needs the stack running)
+
 ## Design tokens
 
-- Every colour, size, radius, shadow, spacing, layer and timing value comes from the one token file in `web/`. Never hard-code hex/rgb/hsl colours, pixel values or square-bracket Tailwind values anywhere else; add a named token instead. A CI check enforces this, with no exceptions.
+- Every colour, size, radius, shadow, spacing, layer and timing value comes from the one token file, `web/src/styles/tokens.css`. Never hard-code hex/rgb/hsl colours, pixel values or square-bracket Tailwind values anywhere else; add a named token instead. A CI check enforces this, with no exceptions.
 - Tailwind's built-in colour palette is removed (ADR 0002). Use the names by purpose: shadcn/ui's own (`background`, `card`, `primary`, `muted`, `accent` = hover background, ...) plus ours (`page`, `topbar`, `brand`, `status-*`).
 - Stitch screenshots are in `docs/design/`. The spec wins on what a screen contains; screenshots guide layout only. Don't copy values from them.
 

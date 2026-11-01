@@ -13,3 +13,5 @@ node_modules/
 .next/
 web/test-results/
 web/playwright-report/
+web/next-env.d.ts
+*.tsbuildinfo

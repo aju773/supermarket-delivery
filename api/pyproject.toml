@@ -1,0 +1,24 @@
+[project]
+name = "supermarket-api"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=6.1,<6.2",
+    "django-ninja>=1.7,<2",
+    "psycopg[binary]>=3.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "time-machine>=2.16",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+addopts = "--strict-markers"
