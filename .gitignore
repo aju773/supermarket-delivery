@@ -1,0 +1,15 @@
+.env
+.DS_Store
+
+# api
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+api/media/
+
+# web
+node_modules/
+.next/
+web/test-results/
+web/playwright-report/
