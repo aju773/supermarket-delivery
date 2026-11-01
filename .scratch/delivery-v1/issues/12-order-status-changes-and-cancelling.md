@@ -4,6 +4,8 @@
 
 **Blocked by:** 11
 
+**Design:** `admin-order-detail.png`, `admin-order-detail-phone.png`, `customer-order-status.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Allowed transitions: `new → confirmed`, `confirmed → out_for_delivery`, `out_for_delivery → delivered`; staff can cancel from `new`, `confirmed` or `out_for_delivery`; the customer can cancel from `new` or `confirmed` through the token; everything else is rejected
@@ -13,3 +15,4 @@
 - [ ] Cancelling (staff or customer) asks for confirmation in a popup; successful changes show a toast ("Order confirmed")
 - [ ] Customer status page shows a Cancel button while the Order is New or Confirmed, otherwise "Call the shop"; the timeline shows the transition times
 - [ ] API tests cover every allowed and rejected transition, by staff and by the customer through the token, and that the history records who and when
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

@@ -4,6 +4,8 @@
 
 **Blocked by:** 02
 
+**Design:** `admin-settings.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Settings page has a card for shop settings: minimum order, delivery charge (entered in ₹, stored as paise), opening time, closing time, shop phone, orders-per-hour limit
@@ -13,3 +15,4 @@
 - [ ] Saving shows a toast ("Settings saved")
 - [ ] The customer home info strip reflects the saved hours and minimum order
 - [ ] API tests cover reading and updating settings, validation errors, area create/rename/reorder/disable, the public list returning only active areas, and anonymous rejection of the admin endpoints
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

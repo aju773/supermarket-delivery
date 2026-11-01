@@ -4,6 +4,8 @@
 
 **Blocked by:** 09
 
+**Design:** `admin-orders.png`, `admin-orders-phone.png`, `admin-order-detail.png`, `admin-order-detail-phone.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Admin endpoint lists Orders, newest first, paginated, filterable by status
@@ -14,3 +16,4 @@
 - [ ] Order detail, phones: the same cards stacked
 - [ ] Empty list state shows an icon, one line of text and an action
 - [ ] API tests cover listing, status filtering, pagination, the detail endpoint and anonymous rejection
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

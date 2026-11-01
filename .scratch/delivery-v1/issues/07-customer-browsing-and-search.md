@@ -4,6 +4,8 @@
 
 **Blocked by:** 05
 
+**Design:** `customer-home.png`, `customer-category.png`, `customer-product.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] A Product is shown only if it and its Category are visible and it has at least one visible Pack Option; hidden Categories don't appear as tiles
@@ -17,3 +19,4 @@
 - [ ] A note says the final amount is confirmed at delivery
 - [ ] Public catalog endpoints need no login
 - [ ] API tests cover the visibility rules, featured row, category listing, case-insensitive search, and out-of-stock options being returned but flagged
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

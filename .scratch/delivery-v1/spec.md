@@ -226,13 +226,27 @@ A mobile-friendly website for the shop with two sides:
 ### UI and UX
 
 - **Design system:**
-  - **Components:** Tailwind CSS with shadcn/ui components, copied into the project and restyled. Shopify's Polaris components, icons and illustrations are not used: their licence only covers apps that integrate with Shopify. We copy the general style, not Shopify's assets or branding.
+  - **Components:** Tailwind CSS v4 with shadcn/ui components, copied into the project and restyled. Shopify's Polaris components, icons and illustrations are not used: their licence only covers apps that integrate with Shopify. We copy the general style, not Shopify's assets or branding.
   - **Icons:** Phosphor Icons. Regular weight everywhere; fill weight for the active navigation item.
   - **Font:** Inter, served from our own server (no outside font service). Numbers use tabular figures so prices and totals line up.
   - **Type sizes:** 14 px body in the admin, 16 px body on the customer site, and 16 px for every form input so phones don't zoom in on focus.
-  - **Colours:** near-black top bar, light grey page, white cards with rounded corners and hairline borders, black main buttons. One accent colour (fresh green by default, or the shop's brand colour) for Add, the cart bar and success states.
+  - **Colours:** near-black top bar, light grey page, white cards with rounded corners and hairline borders, black main buttons. One brand colour (fresh green by default, or the shop's own colour once known) for Add, the cart bar and success states.
   - **Light mode only.**
   - **Shared colour and type settings:** the admin and the customer site use the same colours, fonts, icons and components, so the two sides look like one product.
+- **Design tokens:**
+  - **One token file is the source of truth:** a single CSS file in the frontend using Tailwind v4's `@theme`. It was seeded once from the Stitch design system; after that the file owns the values and Stitch is not updated.
+  - **No hard-coded values anywhere else:** components never contain raw colours (hex, rgb, hsl), pixel values or one-off Tailwind values in square brackets. If a new value is needed, add a named token (e.g. `--size-product-card-min`). There is no per-line exception.
+  - **What tokens cover:** colours, font family, font sizes, weights and line heights, corner rounding, shadows, border widths, spacing, stacking layers, screen-width breakpoints and animation timing. Spacing and breakpoints use Tailwind's standard steps as the token scale. Stacking layers are named tokens so the top bar, cart bar, slide-up panel, popups and toasts always sit in the same order.
+  - **Two layers:** a raw palette underneath, and names by purpose that components use. Components use only the names by purpose.
+  - **Names by purpose:** shadcn/ui's own variables keep their shadcn meaning (`background`, `foreground`, `card`, `primary`, `muted`, `border`, `ring`, `destructive`, and `accent`, which is shadcn's subtle hover background, not our brand colour). We add `page`, `topbar`, `brand`, `status-new`, `status-confirmed`, `status-out`, `status-delivered` and `status-cancelled`.
+  - **Tailwind's built-in colour palette is removed**, so only token colours exist (`bg-green-600` does not work). See ADR 0002.
+  - **CI check:** fails the build on raw colours, pixel values or square-bracket Tailwind values anywhere outside the token file.
+  - **Contrast:** every text/background token pair must meet WCAG AA. If a Stitch colour fails, the token value is changed and the reason is noted in the token file.
+- **Design reference (Stitch screens):**
+  - Screenshots of the 24 Stitch screens live in the repo with an index that maps each screen to its Stitch ID and tickets (`docs/design/`).
+  - The spec wins on what a screen contains (fields, buttons, wording, behaviour). Screenshots guide layout, spacing and visual weight. Anything on a screenshot that isn't in the spec is not built.
+  - The Admin Orders v2 screen is the reference for the admin top bar and sidebar on every admin page.
+  - Stitch drew Material icons; use the matching Phosphor icon. Never copy values from a screenshot or from Stitch's HTML.
 - **Customer site:**
   - **Top bar:** shop logo and name, call-the-shop button, link to "My orders". Wide screens add a cart button with a count.
   - **Home:** search box, an info strip (open/closed now, delivery hours, minimum order), category tiles, and a "Popular" row of featured products.

@@ -4,6 +4,8 @@
 
 **Blocked by:** 01
 
+**Design:** `admin-login.png`, `admin-orders.png`, `admin-orders-phone.png`, `admin-change-password.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] The first Staff Member account can be created from the server command line
@@ -17,3 +19,4 @@
 - [ ] Orders page shows an empty state (icon, one line of text, action) until orders exist
 - [ ] Admin uses 14 px body text, grey page, white rounded cards; icon-only buttons have screen-reader labels
 - [ ] API tests cover login, logout, anonymous rejection, CSRF rejection, deactivated-user login rejection and change own password
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

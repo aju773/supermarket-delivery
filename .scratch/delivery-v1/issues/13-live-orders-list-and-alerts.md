@@ -4,6 +4,8 @@
 
 **Blocked by:** 12
 
+**Design:** `admin-orders.png`, `admin-orders-phone.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] A polling endpoint returns Orders created or cancelled since a given cursor
@@ -12,3 +14,4 @@
 - [ ] A loud sound plays for each new Order and a sound plays when an Order is cancelled
 - [ ] API tests cover the polling endpoint returning new and cancelled Orders after the cursor and nothing older
 - [ ] Playwright: staff logs in, a new Order placed by a customer appears in the live list, and staff moves it to Delivered
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

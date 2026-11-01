@@ -4,6 +4,8 @@
 
 **Blocked by:** 04
 
+**Design:** `admin-products.png`, `admin-product-editor.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Product has a name, Category, featured flag and visible flag; Pack Option has a product, unique code, label, price (paise), in-stock flag and display order; every Product has at least one Pack Option
@@ -16,3 +18,4 @@
 - [ ] Products and Pack Options can be hidden but there is no delete; removing a Pack Option from a product hides it
 - [ ] Admin product endpoints are paginated and reject anonymous requests
 - [ ] API tests cover create/update with several Pack Options, duplicate code rejection, stock toggle, featured and hidden flags, name search (case-insensitive), exact code search and category filter
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

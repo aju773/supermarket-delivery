@@ -4,6 +4,8 @@
 
 **Blocked by:** 06
 
+**Design:** `admin-import-photos.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Import area has a Photos page accepting many image files or a zip
@@ -11,3 +13,4 @@
 - [ ] The result lists matched files and unmatched files
 - [ ] Non-image files are reported, not saved
 - [ ] API tests cover matching by code, zip uploads, unmatched files reported, and images resized and converted to WebP
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

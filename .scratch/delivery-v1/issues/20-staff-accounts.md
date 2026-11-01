@@ -4,6 +4,8 @@
 
 **Blocked by:** 02
 
+**Design:** `admin-staff.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Staff page lists accounts with name and active/inactive status
@@ -13,3 +15,4 @@
 - [ ] Deactivating your own account or the last active account is rejected with a clear message
 - [ ] Deactivated Staff Members can't log in
 - [ ] API tests cover list, create, reset password, deactivate, reactivate, both guards, anonymous and missing-CSRF rejection
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

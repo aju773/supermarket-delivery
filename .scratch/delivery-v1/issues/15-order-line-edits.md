@@ -4,6 +4,8 @@
 
 **Blocked by:** 11
 
+**Design:** `admin-order-detail.png`, `customer-order-status.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Lines card has an Edit mode: change quantity, remove a line, add a Pack Option (searched by name or code), swap a line for another Pack Option
@@ -13,3 +15,4 @@
 - [ ] The Original Request never changes; when it differs from the current lines it is shown beside them
 - [ ] The customer status page shows the current lines and total
 - [ ] API tests cover each edit type, rejection outside `new`/`confirmed`, total recalculation and the Original Request staying unchanged
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

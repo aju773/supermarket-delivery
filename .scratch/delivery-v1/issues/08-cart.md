@@ -4,6 +4,8 @@
 
 **Blocked by:** 07
 
+**Design:** `customer-category.png`, `customer-pack-size-sheet.png`, `customer-cart.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Add button on a card turns into a − 1 + counter; going below 1 removes the item
@@ -14,3 +16,4 @@
 - [ ] Cart page: lines with quantity controls and remove, subtotal, delivery charge, total, the "final amount confirmed at delivery" note, and a minimum-order message saying how much more is needed
 - [ ] The checkout button is disabled below the minimum order amount with a clear message
 - [ ] Empty Cart shows an icon, one line of text and a "Browse products" button
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

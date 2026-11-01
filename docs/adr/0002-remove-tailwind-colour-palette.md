@@ -1,0 +1,3 @@
+# Remove Tailwind's built-in colour palette
+
+All colours must come from our design tokens, so the frontend removes Tailwind's built-in colour palette in the token file: classes like `bg-green-600` or `text-red-500` don't exist, and only token colours such as `bg-brand` or `bg-status-new` do. A written rule alone drifts quickly when AI agents build most of the tickets, and the brand colour is expected to change once the shop gives us theirs; with the palette gone, a hard-coded colour fails to build instead of slipping through review. The cost is that Tailwind examples and copied snippets using palette colours need rewriting to tokens, and anyone new to the codebase will be surprised that `bg-red-500` does nothing.

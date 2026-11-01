@@ -11,6 +11,12 @@ Website for a local supermarket: customers browse the catalog and place delivery
 
 The current spec is `.scratch/delivery-v1/spec.md`.
 
+## Design tokens
+
+- Every colour, size, radius, shadow, spacing, layer and timing value comes from the one token file in `web/`. Never hard-code hex/rgb/hsl colours, pixel values or square-bracket Tailwind values anywhere else; add a named token instead. A CI check enforces this, with no exceptions.
+- Tailwind's built-in colour palette is removed (ADR 0002). Use the names by purpose: shadcn/ui's own (`background`, `card`, `primary`, `muted`, `accent` = hover background, ...) plus ours (`page`, `topbar`, `brand`, `status-*`).
+- Stitch screenshots are in `docs/design/`. The spec wins on what a screen contains; screenshots guide layout only. Don't copy values from them.
+
 ## Agent skills
 
 ### Issue tracker

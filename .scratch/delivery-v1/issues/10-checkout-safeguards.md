@@ -4,6 +4,8 @@
 
 **Blocked by:** 09
 
+**Design:** `customer-checkout-price-change.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Before creating anything, the server compares every cart line's current price and stock with the price the customer saw
@@ -14,3 +16,4 @@
 - [ ] Checkout steps run in the spec's order: validate fields, rate limit, compare prices/stock, minimum order, create
 - [ ] API tests cover each change type returning `409` and creating nothing, minimum order rejection, and the `429` limit
 - [ ] Playwright: checkout shows the price-change popup, the customer confirms, and the order goes through
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

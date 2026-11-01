@@ -4,6 +4,8 @@
 
 **Blocked by:** 09
 
+**Design:** `customer-my-orders.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] "My orders" lists Orders from the tokens saved on the phone, newest first, with order number, date, status badge and total; it handles localStorage being unavailable
@@ -12,3 +14,4 @@
 - [ ] Lines that are hidden, unavailable or out of stock are skipped and the customer is told which ones
 - [ ] API tests cover the reorder lookup returning current prices and flagging lines that can't be ordered
 - [ ] Playwright: "My orders" lists a placed Order and Reorder fills the Cart
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

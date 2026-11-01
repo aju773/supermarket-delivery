@@ -4,6 +4,8 @@
 
 **Blocked by:** 08, 03
 
+**Design:** `customer-checkout.png`, `customer-order-placed.png`, `customer-order-status.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
+
 **Status:** ready-for-agent
 
 - [ ] Checkout page: customer details (pre-filled from the phone), Delivery Area dropdown of active areas, address, landmark, note, Cash/UPI choice, short order summary, and a sticky "Place order · ₹total" button
@@ -17,3 +19,4 @@
 - [ ] Status page (public, by token): vertical timeline (Placed, Confirmed, Out for delivery, Delivered, or Cancelled) with times, current lines and total, and a "Call the shop" button
 - [ ] API tests cover the happy path, phone normalisation, inactive Delivery Area rejection, field errors, after-hours flag, First-Time Customer → New and repeat customer → Confirmed, and the public status endpoint
 - [ ] Playwright (phone size): customer browses, adds to the Cart, checks out and sees the status page
+- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)
