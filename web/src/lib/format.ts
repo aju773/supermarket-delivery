@@ -32,9 +32,32 @@ export function formatClockTime(hhmm: string): string {
 
 /** "Opens 8 AM" when the next opening is today in the shop timezone, else "Opens tomorrow 8 AM". */
 export function formatNextOpening(nextOpeningAt: string, timeZone: string, now: Date = new Date()): string {
-  const opening = new Date(nextOpeningAt);
+  return `Opens ${formatOpeningTime(nextOpeningAt, timeZone, now)}`;
+}
+
+/** "8 AM" when the opening is today in the shop timezone, else "tomorrow 8 AM". */
+export function formatOpeningTime(openingAt: string, timeZone: string, now: Date = new Date()): string {
+  const opening = new Date(openingAt);
   const day = new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" });
-  const clock = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hour12: false });
-  const when = formatClockTime(clock.format(opening));
-  return day.format(opening) === day.format(now) ? `Opens ${when}` : `Opens tomorrow ${when}`;
+  const when = formatClockTime(clockTime(opening, timeZone));
+  return day.format(opening) === day.format(now) ? when : `tomorrow ${when}`;
+}
+
+/** "10:42 AM" in the shop timezone. */
+export function formatTimeOfDay(at: string, timeZone: string): string {
+  const [hours, minutes] = clockTime(new Date(at), timeZone).split(":").map(Number);
+  return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${hours < 12 ? "AM" : "PM"}`;
+}
+
+/** "Placed today, 10:42 AM" or "Placed 2 Nov, 10:42 AM", in the shop timezone. */
+export function formatPlacedAt(at: string, timeZone: string, now: Date = new Date()): string {
+  const placed = new Date(at);
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" });
+  const date = new Intl.DateTimeFormat("en-IN", { timeZone, day: "numeric", month: "short" });
+  const when = day.format(placed) === day.format(now) ? "today" : date.format(placed);
+  return `Placed ${when}, ${formatTimeOfDay(at, timeZone)}`;
+}
+
+function clockTime(moment: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(moment);
 }

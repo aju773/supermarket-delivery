@@ -41,7 +41,16 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function setCartQuantity(item: CartItem, quantity: number): void {
-  cart = setQuantity(getSnapshot(), item, quantity);
+  save(setQuantity(getSnapshot(), item, quantity));
+}
+
+/** Empties the Cart, after an Order is placed. */
+export function clearCart(): void {
+  save(EMPTY);
+}
+
+function save(lines: CartLine[]): void {
+  cart = lines;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
   } catch {

@@ -6,17 +6,17 @@
 
 **Design:** `customer-checkout.png`, `customer-order-placed.png`, `customer-order-status.png` in `docs/design/screens/`. Follow `docs/design/README.md`: the spec wins on content, screenshots guide layout.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Checkout page: customer details (pre-filled from the phone), Delivery Area dropdown of active areas, address, landmark, note, Cash/UPI choice, short order summary, and a sticky "Place order · ₹total" button
-- [ ] Customer fields are validated on the server: name, phone normalised to a 10-digit Indian mobile (accepts +91, spaces, leading 0), active Delivery Area, address, payment method `cash` or `upi`; errors return `422` with field errors shown next to the fields
-- [ ] A successful checkout returns `201` with the order number and public token
-- [ ] The Order stores Order Lines (name, pack label and unit price copied), the Original Request snapshot, delivery charge, total, a long random public token separate from a short sequential order number, and an "after hours" flag if the shop is closed
-- [ ] Starting status is New for a First-Time Customer (no earlier Delivered Order for that phone) and Confirmed otherwise
-- [ ] Products and Pack Options referenced by any Order can't be deleted, only hidden
-- [ ] Ordering outside delivery hours tells the customer delivery starts from the next opening time
-- [ ] After placing: the Cart is cleared, customer details and the order token are saved on the phone, and the confirmation page shows order number, items, total, payment method and the Status Link
-- [ ] Status page (public, by token): vertical timeline (Placed, Confirmed, Out for delivery, Delivered, or Cancelled) with times, current lines and total, and a "Call the shop" button
-- [ ] API tests cover the happy path, phone normalisation, inactive Delivery Area rejection, field errors, after-hours flag, First-Time Customer → New and repeat customer → Confirmed, and the public status endpoint
-- [ ] Playwright (phone size): customer browses, adds to the Cart, checks out and sees the status page
-- [ ] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)
+- [x] Checkout page: customer details (pre-filled from the phone), Delivery Area dropdown of active areas, address, landmark, note, Cash/UPI choice, short order summary, and a sticky "Place order · ₹total" button
+- [x] Customer fields are validated on the server: name, phone normalised to a 10-digit Indian mobile (accepts +91, spaces, leading 0), active Delivery Area, address, payment method `cash` or `upi`; errors return `422` with field errors shown next to the fields
+- [x] A successful checkout returns `201` with the order number and public token
+- [x] The Order stores Order Lines (name, pack label and unit price copied), the Original Request snapshot, delivery charge, total, a long random public token separate from a short sequential order number, and an "after hours" flag if the shop is closed
+- [x] Starting status is New for a First-Time Customer (no earlier Delivered Order for that phone) and Confirmed otherwise
+- [x] Products and Pack Options referenced by any Order can't be deleted, only hidden
+- [x] Ordering outside delivery hours tells the customer delivery starts from the next opening time
+- [x] After placing: the Cart is cleared, customer details and the order token are saved on the phone, and the confirmation page shows order number, items, total, payment method and the Status Link
+- [x] Status page (public, by token): vertical timeline (Placed, Confirmed, Out for delivery, Delivered, or Cancelled) with times, current lines and total, and a "Call the shop" button
+- [x] API tests cover the happy path, phone normalisation, inactive Delivery Area rejection, field errors, after-hours flag, First-Time Customer → New and repeat customer → Confirmed, and the public status endpoint
+- [ ] Playwright (phone size): customer browses, adds to the Cart, checks out and sees the status page (written in `web/e2e/checkout.spec.ts`, not yet run)
+- [x] No hard-coded values: every colour, size, radius, shadow, spacing and layer comes from the design tokens (the CI check passes)

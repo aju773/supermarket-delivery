@@ -13,11 +13,11 @@ export function itemsText(count: number): string {
   return `${count} ${count === 1 ? "item" : "items"}`;
 }
 
-/** Phones: "3 items · ₹245 · View cart" fixed to the bottom whenever the Cart isn't empty (not on the cart page). */
+/** Phones: "3 items · ₹245 · View cart" fixed to the bottom whenever the Cart isn't empty (not on the cart or checkout page). */
 export function CartBar() {
   const cart = useCart();
   const pathname = usePathname();
-  if (cart.length === 0 || pathname === "/cart") return null;
+  if (cart.length === 0 || pathname === "/cart" || pathname === "/checkout") return null;
   const { itemCount, subtotalPaise } = cartTotals(cart);
   return (
     <>
