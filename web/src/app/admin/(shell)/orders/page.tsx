@@ -2,6 +2,7 @@ import { FunnelIcon, ReceiptIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/admin/empty-state";
+import { LiveOrders } from "@/components/admin/live-orders";
 import { AfterHoursTag, CallToConfirmTag, OrderBadges, StatusBadge } from "@/components/admin/order-badges";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export default async function AdminOrdersPage({
 
   return (
     <>
-      <PageHeader title="Orders" />
+      <PageHeader title="Orders" action={<LiveOrders />} />
       <nav aria-label="Filter by status" className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
         {([null, ...Object.keys(STATUS_LABELS)] as (OrderStatus | null)[]).map((each) => (
           <Button

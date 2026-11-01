@@ -106,6 +106,36 @@ def list_orders(request, status: Order.Status | None = None):
     return found
 
 
+class OrderChanges(Schema):
+    # Pass back as `after` on the next poll.
+    cursor: int
+    placed: list[OrderSummary]
+    # Cancelled by the customer through the Status Link; staff cancelling doesn't need an alert.
+    cancelled: list[OrderSummary]
+    # Every Order with any status change, so the list can refresh those rows.
+    updated: list[int]
+
+
+@router.get("/orders/changes", response=OrderChanges)
+def order_changes(request, after: int | None = None):
+    """Orders placed or cancelled since the cursor. Without one, just the current cursor to start from."""
+    latest = StatusChange.objects.order_by("-id").values_list("id", flat=True).first() or 0
+    if after is None:
+        return {"cursor": latest, "placed": [], "cancelled": [], "updated": []}
+    changes = list(StatusChange.objects.filter(id__gt=after, id__lte=latest).order_by("id"))
+    placed = [change.order_id for change in changes if change.status == Order.Status.NEW]
+    cancelled = [
+        change.order_id for change in changes if change.status == Order.Status.CANCELLED and change.changed_by_id is None
+    ]
+    found = {order.id: order for order in orders().filter(id__in=placed + cancelled)}
+    return {
+        "cursor": latest,
+        "placed": [found[number] for number in placed],
+        "cancelled": [found[number] for number in cancelled],
+        "updated": list(dict.fromkeys(change.order_id for change in changes)),
+    }
+
+
 class StatusIn(Schema):
     status: Order.Status
 
