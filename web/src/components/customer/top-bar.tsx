@@ -1,6 +1,8 @@
 import { PhoneIcon, StorefrontIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 
+import { TopBarCartButton } from "@/components/customer/cart-bar";
+
 const topBarLink =
   "inline-flex min-h-tap min-w-tap items-center justify-center rounded-md focus-visible:outline-topbar-ring";
 
@@ -21,6 +23,7 @@ export function CustomerTopBar({ shopName, phone }: { shopName: string; phone: s
           <Link href="/orders" className={`${topBarLink} px-2`}>
             My orders
           </Link>
+          <TopBarCartButton className={topBarLink} />
         </nav>
       </div>
     </header>

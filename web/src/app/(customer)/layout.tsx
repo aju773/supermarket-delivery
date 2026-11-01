@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { CartBar } from "@/components/customer/cart-bar";
 import { CustomerTopBar } from "@/components/customer/top-bar";
 import { getShopInfo } from "@/lib/shop";
 
@@ -11,6 +12,7 @@ export default async function CustomerLayout({ children }: { children: ReactNode
     <>
       <CustomerTopBar shopName={shop.name} phone={shop.phone} />
       <main className="mx-auto w-full max-w-content px-4 py-4">{children}</main>
+      <CartBar />
     </>
   );
 }

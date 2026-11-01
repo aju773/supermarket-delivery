@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { AddButton } from "@/components/customer/add-button";
 import { FinalAmountNote } from "@/components/customer/final-amount-note";
 import { ProductPhoto } from "@/components/customer/product-photo";
+import { cartItemFor } from "@/lib/cart";
 import { getProduct } from "@/lib/catalog";
 import { formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ export default async function ProductPage({ params }: Props) {
               <span className={cn(!option.in_stock && "text-muted-foreground")}>
                 {option.label} · {formatRupees(option.price_paise)}
               </span>
-              <AddButton inStock={option.in_stock} label={`${product.name} ${option.label}`} />
+              <AddButton item={cartItemFor(product, option)} inStock={option.in_stock} />
             </li>
           ))}
         </ul>

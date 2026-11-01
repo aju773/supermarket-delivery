@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-tokens.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "test:unit": "node --test scripts/",
+    "test:unit": "node --test scripts/ src/",
     "test:e2e": "playwright test"
   },
   "dependencies": {

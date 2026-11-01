@@ -1,8 +1,9 @@
-import { CaretDownIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 
 import { AddButton } from "@/components/customer/add-button";
+import { PackSizeSheet } from "@/components/customer/pack-size-sheet";
 import { ProductPhoto } from "@/components/customer/product-photo";
+import { cartItemFor } from "@/lib/cart";
 import type { CatalogProduct } from "@/lib/catalog";
 import { formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -20,10 +21,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         </h3>
       </Link>
       {options.length > 1 ? (
-        <span className="inline-flex items-center gap-1 self-start rounded-sm border-hairline border-border px-2 text-sm">
-          {option.label}
-          <CaretDownIcon aria-label="More pack sizes" weight="fill" className="size-3" />
-        </span>
+        <PackSizeSheet product={product} shown={option} />
       ) : (
         <span className="text-sm text-muted-foreground">{option.label}</span>
       )}
@@ -31,7 +29,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         <span className={cn("font-bold", !option.in_stock && "text-muted-foreground")}>
           {formatRupees(option.price_paise)}
         </span>
-        <AddButton inStock={option.in_stock} label={`${product.name} ${option.label}`} />
+        <AddButton item={cartItemFor(product, option)} inStock={option.in_stock} />
       </div>
     </article>
   );
