@@ -30,3 +30,7 @@ cd web && pnpm test:unit && pnpm typecheck
 ```
 
 Playwright needs its browser once: `cd web && pnpm exec playwright install chromium`.
+
+## Deployment
+
+Production runs on a single ARM server with `compose.prod.yaml`; see `docs/deployment.md` for setup, updates, backups, restore and handover. `ops/drill.sh` rehearses a backup and restore locally with Docker only.

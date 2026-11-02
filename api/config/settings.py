@@ -60,6 +60,9 @@ USE_TZ = True
 # Staff stay signed in on the shop phone for about a month.
 SESSION_COOKIE_AGE = 30 * 24 * 60 * 60
 SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG
+if not DEBUG:
+    # Caddy terminates HTTPS and tells Django which scheme the browser used.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

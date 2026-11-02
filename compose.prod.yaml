@@ -1,0 +1,71 @@
+# Production stack on the server: `docker compose -f compose.prod.yaml --env-file .env.prod up -d`.
+# Images are built for ARM by GitHub Actions and pulled here; nothing is built on the server.
+# See docs/deployment.md.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: ${IMAGE_PREFIX}/api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env.prod
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: ${IMAGE_PREFIX}/web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: ${API_INTERNAL_URL}
+    depends_on:
+      - api
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - web
+
+  # Nightly backup of Postgres and photos; also used by ops/restore.sh. See docs/deployment.md.
+  backup:
+    image: ${IMAGE_PREFIX}/backup:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env.prod
+    volumes:
+      - media:/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  media:
+  caddy-data:
+  caddy-config:
