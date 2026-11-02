@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
-from django.db.models import Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef, Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router, Schema
@@ -10,6 +10,7 @@ from ninja.security import django_auth
 from orders.api import Problem
 from orders.models import Order, StatusChange
 from orders.status import NotAllowed, change_status
+from shop.models import ShopSettings
 
 # Every admin endpoint needs a staff session; django_auth also checks the CSRF token on writes.
 router = Router(tags=["admin orders"], auth=django_auth)
@@ -155,6 +156,30 @@ def order_changes(request, after: int | None = None):
         "cancelled": [found[number] for number in cancelled],
         "updated": list(dict.fromkeys(change.order_id for change in changes)),
     }
+
+
+class OrdersSummary(Schema):
+    orders_today: int
+    sales_today_paise: int
+    # Current statuses, whatever day the Order was placed.
+    new: int
+    out_for_delivery: int
+
+
+@router.get("/orders/summary", response=OrdersSummary)
+def orders_summary(request):
+    """The numbers for the Orders page tiles; `new` is also the Orders badge. Today is the day in the shop timezone."""
+    zone = ShopSettings.load().zone
+    start = datetime.combine(timezone.now().astimezone(zone).date(), time.min, tzinfo=zone)
+    today = Order.objects.filter(created_at__gte=start, created_at__lt=start + timedelta(days=1)).exclude(
+        status=Order.Status.CANCELLED
+    )
+    totals = today.aggregate(count=Count("id"), sales=Sum("total_paise"))
+    by_status = Order.objects.filter(status__in=[Order.Status.NEW, Order.Status.OUT_FOR_DELIVERY]).aggregate(
+        new=Count("id", filter=Q(status=Order.Status.NEW)),
+        out_for_delivery=Count("id", filter=Q(status=Order.Status.OUT_FOR_DELIVERY)),
+    )
+    return {"orders_today": totals["count"], "sales_today_paise": totals["sales"] or 0, **by_status}
 
 
 class StatusIn(Schema):

@@ -7,7 +7,8 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { AccountMenu } from "@/components/admin/account-menu";
-import { isActive, NAV_ITEMS, TAB_ITEMS } from "@/components/admin/nav";
+import { isActive, NAV_ITEMS, ORDERS_HREF, TAB_ITEMS } from "@/components/admin/nav";
+import { NewOrdersBadge, useNewOrders } from "@/components/admin/new-orders-badge";
 import { ToastProvider } from "@/components/admin/toast";
 import { useLogOut } from "@/components/admin/use-log-out";
 import { cn } from "@/lib/utils";
@@ -22,13 +23,17 @@ const topBarButton =
 export function AdminShell({
   shopName,
   username,
+  newOrders,
   children,
 }: {
   shopName: string;
   username: string;
+  /** How many Orders are New, as rendered by the server. */
+  newOrders: number;
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const newOrderCount = useNewOrders(newOrders);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -41,7 +46,7 @@ export function AdminShell({
                 <ListIcon aria-hidden className="size-6" />
               </Dialog.Trigger>
               <Link
-                href="/admin/orders"
+                href={ORDERS_HREF}
                 className={cn(topBarButton, "gap-2 px-1 text-lg font-bold tracking-tight max-md:mx-auto")}
               >
                 <StorefrontIcon aria-hidden className="size-6 max-md:hidden" />
@@ -57,21 +62,29 @@ export function AdminShell({
 
           <div className="flex flex-1">
             <aside className="hidden w-sidebar shrink-0 border-r-hairline border-border bg-sidebar p-3 md:block">
-              <SidebarNav pathname={pathname} />
+              <SidebarNav pathname={pathname} newOrders={newOrderCount} />
             </aside>
             <main className="min-w-0 flex-1 px-4 pt-4 pb-24 md:px-8 md:pt-6 md:pb-8">{children}</main>
           </div>
         </div>
 
-        <PhoneMenu pathname={pathname} username={username} onNavigate={() => setMenuOpen(false)} />
+        <PhoneMenu pathname={pathname} username={username} newOrders={newOrderCount} onNavigate={() => setMenuOpen(false)} />
       </Dialog.Root>
 
-      <TabBar pathname={pathname} onMore={() => setMenuOpen(true)} />
+      <TabBar pathname={pathname} newOrders={newOrderCount} onMore={() => setMenuOpen(true)} />
     </ToastProvider>
   );
 }
 
-function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function SidebarNav({
+  pathname,
+  newOrders,
+  onNavigate,
+}: {
+  pathname: string;
+  newOrders: number;
+  onNavigate?: () => void;
+}) {
   return (
     <nav aria-label="Admin">
       <ul className="flex flex-col gap-1">
@@ -90,6 +103,7 @@ function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: (
               >
                 <Icon aria-hidden weight={active ? "fill" : "regular"} className="size-5" />
                 {label}
+                {href === ORDERS_HREF && <NewOrdersBadge count={newOrders} className="ml-auto" />}
               </Link>
             </li>
           );
@@ -99,7 +113,17 @@ function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: (
   );
 }
 
-function PhoneMenu({ pathname, username, onNavigate }: { pathname: string; username: string; onNavigate: () => void }) {
+function PhoneMenu({
+  pathname,
+  username,
+  newOrders,
+  onNavigate,
+}: {
+  pathname: string;
+  username: string;
+  newOrders: number;
+  onNavigate: () => void;
+}) {
   const logOut = useLogOut();
   const accountItem =
     "flex min-h-tap w-full items-center gap-3 rounded-md px-3 text-sidebar-foreground hover:bg-sidebar-active";
@@ -117,7 +141,7 @@ function PhoneMenu({ pathname, username, onNavigate }: { pathname: string; usern
           </Dialog.Close>
         </div>
         <Dialog.Description className="sr-only">Admin pages and your account</Dialog.Description>
-        <SidebarNav pathname={pathname} onNavigate={onNavigate} />
+        <SidebarNav pathname={pathname} newOrders={newOrders} onNavigate={onNavigate} />
         <div className="mt-auto flex flex-col gap-1 border-t-hairline border-border pt-3">
           <p className="px-3 text-muted-foreground">Signed in as {username}</p>
           <Link href="/admin/account/password" onClick={onNavigate} className={accountItem}>
@@ -134,7 +158,7 @@ function PhoneMenu({ pathname, username, onNavigate }: { pathname: string; usern
   );
 }
 
-function TabBar({ pathname, onMore }: { pathname: string; onMore: () => void }) {
+function TabBar({ pathname, newOrders, onMore }: { pathname: string; newOrders: number; onMore: () => void }) {
   const tab = "flex min-h-tap flex-1 flex-col items-center justify-center gap-1 py-2 text-xs";
   const onTab = TAB_ITEMS.some(({ href }) => isActive(pathname, href));
   return (
@@ -151,7 +175,10 @@ function TabBar({ pathname, onMore }: { pathname: string; onMore: () => void }) 
             aria-current={active ? "page" : undefined}
             className={cn(tab, active ? "font-semibold text-foreground" : "text-muted-foreground")}
           >
-            <Icon aria-hidden weight={active ? "fill" : "regular"} className="size-6" />
+            <span className="relative">
+              <Icon aria-hidden weight={active ? "fill" : "regular"} className="size-6" />
+              {href === ORDERS_HREF && <NewOrdersBadge count={newOrders} className="absolute -top-1 -right-2" />}
+            </span>
             {label}
           </Link>
         );

@@ -9,6 +9,14 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
   await page.getByRole("button", { name: "Start alerts" }).click();
   await expect(page.getByRole("button", { name: "Alerts on" })).toHaveAttribute("aria-pressed", "true");
 
+  const waitingTile = page.getByRole("term").filter({ hasText: "Waiting to confirm" }).locator("xpath=following-sibling::dd[1]");
+  const ordersTile = page.getByRole("term").filter({ hasText: "Today's orders" }).locator("xpath=following-sibling::dd[1]");
+  const ordersLink = page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: /^Orders/ });
+  const waiting = Number(await waitingTile.textContent());
+  const today = Number(await ordersTile.textContent());
+  // The badge is hidden at zero, and otherwise matches the tile.
+  await expect(ordersLink).toHaveText(waiting ? new RegExp(`^Orders\\s*${waiting}`) : /^Orders$/);
+
   // A customer orders in another browser while the Orders page stays open.
   const customer = await browser.newPage();
   await customer.goto(`/search?q=${encodeURIComponent(product)}`);
@@ -26,6 +34,11 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
 
   const row = page.getByRole("region", { name: "Orders" }).getByRole("row", { name: new RegExp(`#${number}\\b`) });
   await expect(row).toContainText("Meena Live", { timeout: 15_000 });
+  // The tiles and the badge refresh with the list.
+  // At least one more: the shop's database is shared, so other Orders may arrive during the run.
+  await expect.poll(async () => Number(await waitingTile.textContent())).toBeGreaterThan(waiting);
+  await expect.poll(async () => Number(await ordersTile.textContent())).toBeGreaterThan(today);
+  await expect(ordersLink).toContainText(/\d/);
   await row.getByRole("link", { name: `#${number}` }).click();
 
   for (const [action, status] of [

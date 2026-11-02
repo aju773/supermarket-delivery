@@ -4,12 +4,14 @@ import Link from "next/link";
 import { EmptyState } from "@/components/admin/empty-state";
 import { LiveOrders } from "@/components/admin/live-orders";
 import { AfterHoursTag, CallToConfirmTag, OrderBadges, StatusBadge } from "@/components/admin/order-badges";
+import { OrdersTiles } from "@/components/admin/orders-tiles";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { ORDERS_PAGE_SIZE, STATUS_LABELS, isOrderStatus, type OrderSummary } from "@/lib/admin-orders";
 import { adminGet } from "@/lib/admin-session";
 import { formatDayAndTime, formatRupees } from "@/lib/format";
 import type { OrderStatus } from "@/lib/order-timeline";
+import type { OrdersSummary } from "@/lib/orders-summary";
 import { getShopInfo } from "@/lib/shop";
 
 export default async function AdminOrdersPage({
@@ -22,8 +24,9 @@ export default async function AdminOrdersPage({
   const page = Math.max(1, Number.parseInt(rawPage, 10) || 1);
   const query = new URLSearchParams({ page: String(page) });
   if (status) query.set("status", status);
-  const [orders, shop] = await Promise.all([
+  const [orders, summary, shop] = await Promise.all([
     adminGet<{ items: OrderSummary[]; count: number }>(`/orders?${query}`),
+    adminGet<OrdersSummary>("/orders/summary"),
     getShopInfo(),
   ]);
   const first = (page - 1) * ORDERS_PAGE_SIZE + 1;
@@ -41,6 +44,7 @@ export default async function AdminOrdersPage({
   return (
     <>
       <PageHeader title="Orders" action={<LiveOrders />} />
+      <OrdersTiles summary={summary} />
       <nav aria-label="Filter by status" className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
         {([null, ...Object.keys(STATUS_LABELS)] as (OrderStatus | null)[]).map((each) => (
           <Button

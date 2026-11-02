@@ -125,6 +125,8 @@
   --text-xl--line-height: 1.75rem;
   --text-2xl: 1.5rem;
   --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem; /* the figures on the Orders tiles */
+  --text-3xl--line-height: 2.25rem;
   /* Every form input, so phones don't zoom in on focus. */
   --text-input: 1rem;
 
