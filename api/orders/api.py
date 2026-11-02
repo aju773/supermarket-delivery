@@ -18,6 +18,7 @@ from orders.checkout import (
     place_order,
 )
 from orders.models import Order
+from orders.reorder import reorder_lookup
 from orders.status import NotAllowed, change_status
 from shop.models import ShopSettings
 
@@ -121,6 +122,69 @@ class OrderStatus(Schema):
     shop_phone: str
     # For an Order placed outside delivery hours: when delivery starts, in the shop's timezone.
     delivery_from: datetime | None
+
+
+class MineIn(Schema):
+    tokens: list[str] = []
+
+
+class OrderSummary(Schema):
+    token: str
+    number: int
+    status: str
+    placed_at: datetime
+    item_count: int
+    total_paise: int
+
+
+# More tokens than a phone could plausibly hold are ignored rather than queried.
+MAX_MY_ORDERS = 100
+
+
+@router.post("/mine", response=list[OrderSummary], auth=None)
+def my_orders(request, data: MineIn):
+    """One summary per known token, in the order the phone listed them; unknown tokens are left out."""
+    tokens = data.tokens[:MAX_MY_ORDERS]
+    orders = Order.objects.filter(public_token__in=tokens).prefetch_related("lines").in_bulk(field_name="public_token")
+    return [
+        {
+            "token": order.public_token,
+            "number": order.number,
+            "status": order.status,
+            "placed_at": order.created_at,
+            "item_count": sum(line.quantity for line in order.lines.all()),
+            "total_paise": order.total_paise,
+        }
+        for token in tokens
+        if (order := orders.get(token))
+    ]
+
+
+class ReorderLine(Schema):
+    pack_option_id: int
+    product_id: int
+    product_name: str
+    pack_label: str
+    price_paise: int
+    quantity: int
+    thumbnail_url: str | None
+
+
+class SkippedLine(Schema):
+    product_name: str
+    pack_label: str
+    reason: Literal["unavailable", "out_of_stock"]
+
+
+class Reorder(Schema):
+    lines: list[ReorderLine]
+    skipped: list[SkippedLine]
+
+
+@router.get("/{token}/reorder", response=Reorder, auth=None)
+def reorder(request, token: str):
+    """What Reorder puts in the Cart: the Order's current lines at current prices, and the lines it had to skip."""
+    return reorder_lookup(get_object_or_404(Order, public_token=token))
 
 
 @router.get("/{token}", response=OrderStatus, auth=None)

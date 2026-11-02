@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 import { type CartItem, type CartLine, parseCart, setQuantity } from "@/lib/cart";
+import { addReorderLines, type ReorderLine } from "@/lib/reorder";
 
 // The Cart lives in localStorage so it survives closing the browser. Every read and write is guarded: in a
 // private window or with storage blocked the Cart still works for the visit, it just isn't kept.
@@ -47,6 +48,11 @@ export function setCartQuantity(item: CartItem, quantity: number): void {
 /** Replaces every line, after the customer accepts checkout's price and stock changes. */
 export function replaceCart(lines: CartLine[]): void {
   save(lines);
+}
+
+/** Adds a past Order's lines at current prices, after Reorder. */
+export function addToCart(lines: ReorderLine[]): void {
+  save(addReorderLines(getSnapshot(), lines));
 }
 
 /** Empties the Cart, after an Order is placed. */

@@ -32,3 +32,8 @@ export function rememberOrder(details: CustomerDetails, token: string): void {
   write(DETAILS_KEY, details);
   write(ORDERS_KEY, addOrderToken(parseOrderTokens(read(ORDERS_KEY)), token));
 }
+
+/** The tokens of the Orders placed from this phone, newest first; none when storage is unavailable. */
+export function loadOrderTokens(): string[] {
+  return parseOrderTokens(read(ORDERS_KEY));
+}

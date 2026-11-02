@@ -78,13 +78,18 @@ class CartChange:
     new_price_paise: int | None = None
 
 
-def cart_changes(lines: list[CartLineIn]) -> list[CartChange]:
-    """Every line whose Pack Option is no longer on sale, out of stock, or at a different price than the one seen."""
-    on_sale = PackOption.objects.filter(
+def on_sale_options():
+    """The Pack Options customers can see: visible, on a visible Product in a visible Category (stock is checked separately)."""
+    return PackOption.objects.filter(
         is_visible=True,
         product__is_visible=True,
         product__category__is_visible=True,
-    ).in_bulk([line.pack_option_id for line in lines])
+    )
+
+
+def cart_changes(lines: list[CartLineIn]) -> list[CartChange]:
+    """Every line whose Pack Option is no longer on sale, out of stock, or at a different price than the one seen."""
+    on_sale = on_sale_options().in_bulk([line.pack_option_id for line in lines])
     changes = []
     for line in lines:
         option = on_sale.get(line.pack_option_id)
