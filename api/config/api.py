@@ -6,6 +6,7 @@ from orders.admin_api import router as orders_admin_router
 from orders.api import router as orders_router
 from shop.admin_api import router as shop_admin_router
 from shop.api import router as shop_router
+from staff.accounts_api import router as staff_accounts_router
 from staff.api import router as staff_router
 from staff.search_api import router as search_router
 
@@ -18,3 +19,4 @@ api.add_router("/admin", shop_admin_router)
 api.add_router("/admin", catalog_admin_router)
 api.add_router("/admin", orders_admin_router)
 api.add_router("/admin", search_router)
+api.add_router("/admin", staff_accounts_router)

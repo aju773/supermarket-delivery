@@ -1,6 +1,6 @@
-import { PageHeader } from "@/components/admin/page-header";
+import { StaffList, type Member } from "@/components/admin/staff-list";
+import { adminGet } from "@/lib/admin-session";
 
-// Placeholder so the admin navigation works; the page arrives with ticket 20.
-export default function AdminStaffPage() {
-  return <PageHeader title="Staff" />;
+export default async function AdminStaffPage() {
+  return <StaffList members={await adminGet<Member[]>("/staff")} />;
 }
