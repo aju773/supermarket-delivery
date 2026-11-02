@@ -1,14 +1,24 @@
 """The live orders list: polling for Orders placed or cancelled since a cursor."""
 
+from datetime import timedelta
+
 import pytest
+import time_machine
 from django.contrib.auth.models import User
 
-from orders.models import Order
+from orders.models import Order, StatusChange
 from orders.status import change_status
-from orders.test_checkout import area, milk, no_minimum_or_hourly_limit, place, tomato  # noqa: F401
+from orders.test_checkout import OPEN, area, milk, no_minimum_or_hourly_limit, place, tomato  # noqa: F401
 from orders.test_orders_admin import staff  # noqa: F401
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def an_hour_after_checkout():
+    """Orders are placed at OPEN; polls come later, once any missing change id has had time to commit."""
+    with time_machine.travel(OPEN + timedelta(hours=1)):
+        yield
 
 
 def poll(staff, after=None):
@@ -71,6 +81,43 @@ def test_staff_changes_update_rows_without_an_alert(staff, client, area, tomato)
 
     assert body["placed"] == [] and body["cancelled"] == []
     assert body["updated"] == [order.number]
+
+
+def in_flight(order):
+    """Hides the Order's checkout change, as if its transaction got an id but hasn't committed yet."""
+    change = order.status_changes.get()
+    StatusChange.objects.filter(id=change.id).delete()
+    return change
+
+
+def test_waits_for_a_change_still_being_committed(staff, client, area, tomato):
+    place(client, area, (tomato, 1))
+    cursor = poll(staff)["cursor"]
+    slow = place(client, area, (tomato, 1), phone="9876543211")
+    pending = in_flight(slow)
+    fast = place(client, area, (tomato, 1), phone="9876543212")
+
+    with time_machine.travel(OPEN + timedelta(seconds=1)):
+        body = poll(staff, cursor)
+        assert body["placed"] == [] and body["cursor"] == cursor
+
+        StatusChange.objects.create(id=pending.id, order=slow, status=pending.status, changed_at=pending.changed_at)
+        body = poll(staff, cursor)
+
+    assert numbers(body["placed"]) == [slow.number, fast.number]
+
+
+def test_a_gap_that_never_fills_stops_holding_back_later_changes(staff, client, area, tomato):
+    place(client, area, (tomato, 1))
+    cursor = poll(staff)["cursor"]
+    in_flight(place(client, area, (tomato, 1), phone="9876543211"))
+    later = place(client, area, (tomato, 1), phone="9876543212")
+
+    with time_machine.travel(OPEN + timedelta(minutes=1)):
+        body = poll(staff, cursor)
+
+    assert numbers(body["placed"]) == [later.number]
+    assert body["cursor"] == later.status_changes.get().id
 
 
 def test_needs_a_staff_session(client):

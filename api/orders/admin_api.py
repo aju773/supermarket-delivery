@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from ninja import Router, Schema
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.security import django_auth
@@ -116,20 +117,40 @@ class OrderChanges(Schema):
     updated: list[int]
 
 
+# StatusChange ids come from a sequence when the row is inserted, not when it commits, so a lower id can
+# show up after a higher one. A missing id is waited for until it is this old; by then it was rolled back.
+IN_FLIGHT_FOR = timedelta(seconds=10)
+
+
+def settled_changes(after: int, now: datetime) -> list[StatusChange]:
+    """Changes after `after`, stopping at the first missing id that may still be committing."""
+    found = []
+    expected = after + 1
+    for change in StatusChange.objects.filter(id__gt=after).order_by("id"):
+        if change.id != expected and change.changed_at > now - IN_FLIGHT_FOR:
+            break
+        found.append(change)
+        expected = change.id + 1
+    return found
+
+
 @router.get("/orders/changes", response=OrderChanges)
 def order_changes(request, after: int | None = None):
     """Orders placed or cancelled since the cursor. Without one, just the current cursor to start from."""
-    latest = StatusChange.objects.order_by("-id").values_list("id", flat=True).first() or 0
+    now = timezone.now()
     if after is None:
-        return {"cursor": latest, "placed": [], "cancelled": [], "updated": []}
-    changes = list(StatusChange.objects.filter(id__gt=after, id__lte=latest).order_by("id"))
+        old = StatusChange.objects.filter(changed_at__lte=now - IN_FLIGHT_FOR).order_by("-id").first()
+        after = old.id if old else 0
+        changes = settled_changes(after, now)
+        return {"cursor": changes[-1].id if changes else after, "placed": [], "cancelled": [], "updated": []}
+    changes = settled_changes(after, now)
     placed = [change.order_id for change in changes if change.status == Order.Status.NEW]
     cancelled = [
         change.order_id for change in changes if change.status == Order.Status.CANCELLED and change.changed_by_id is None
     ]
     found = {order.id: order for order in orders().filter(id__in=placed + cancelled)}
     return {
-        "cursor": latest,
+        "cursor": changes[-1].id if changes else after,
         "placed": [found[number] for number in placed],
         "cancelled": [found[number] for number in cancelled],
         "updated": list(dict.fromkeys(change.order_id for change in changes)),
