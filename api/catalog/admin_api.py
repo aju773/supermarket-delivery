@@ -6,7 +6,7 @@ from ninja.files import UploadedFile
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.security import django_auth
 
-from catalog import photos
+from catalog import csv_import, photos
 from catalog.models import Category, PackOption, Product
 
 # Every admin endpoint needs a staff session; django_auth also checks the CSRF token on writes.
@@ -296,3 +296,68 @@ def change_stock(request, option_id: int, change: PackOptionStock):
     option.in_stock = change.in_stock
     option.save(update_fields=["in_stock"])
     return option
+
+
+# CSV import
+
+class ImportRowError(Schema):
+    row: int
+    code: str
+    name: str
+    message: str
+
+
+class ImportChange(Schema):
+    row: int
+    code: str
+    product: str
+    pack_label: str
+    old_price_paise: int | None
+    new_price_paise: int
+    action: str
+
+
+class ImportPreview(Schema):
+    total_rows: int
+    products_created: int
+    pack_options_created: int
+    pack_options_updated: int
+    categories_created: list[str]
+    errors: list[ImportRowError]
+    changes: list[ImportChange]
+
+
+class ImportResult(Schema):
+    products_created: int
+    pack_options_created: int
+    pack_options_updated: int
+    categories_created: int
+
+
+@router.post("/import/preview", response={200: ImportPreview, 400: dict})
+def preview_import(request, file: File[UploadedFile]):
+    """Reads the file and reports what applying it would do. Saves nothing."""
+    try:
+        plan = csv_import.build_plan(file.read())
+    except csv_import.ImportFileError as error:
+        return Status(400, {"detail": str(error)})
+    return {
+        "total_rows": plan.total_rows,
+        "products_created": plan.products_created,
+        "pack_options_created": plan.pack_options_created,
+        "pack_options_updated": plan.pack_options_updated,
+        "categories_created": plan.categories_created,
+        "errors": plan.errors,
+        "changes": plan.changes,
+    }
+
+
+@router.post("/import/apply", response={200: ImportResult, 400: dict})
+def apply_import(request, file: File[UploadedFile]):
+    """Saves the whole file, or nothing when any row has a problem."""
+    try:
+        return csv_import.apply(file.read())
+    except csv_import.ImportFileError as error:
+        return Status(400, {"detail": str(error)})
+    except IntegrityError:  # Someone else took one of the new codes while the import ran.
+        return Status(400, {"detail": "A product code changed while importing, so nothing was imported. Choose the file again."})

@@ -1,6 +1,5 @@
-import { PageHeader } from "@/components/admin/page-header";
+import { CsvImport } from "@/components/admin/csv-import";
 
-// Placeholder so the admin navigation works; the page arrives with ticket 18.
 export default function AdminImportPage() {
-  return <PageHeader title="Import" />;
+  return <CsvImport />;
 }
