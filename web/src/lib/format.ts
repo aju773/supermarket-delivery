@@ -66,3 +66,8 @@ export function formatDayAndTime(at: string, timeZone: string, now: Date = new D
 function clockTime(moment: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(moment);
 }
+
+/** A 10-digit mobile number as "98450 12345". */
+export function formatPhone(phone: string): string {
+  return `${phone.slice(0, 5)} ${phone.slice(5)}`;
+}

@@ -15,7 +15,7 @@ import {
 } from "@/lib/admin-orders";
 import { adminGet } from "@/lib/admin-session";
 import { originalRequestChanges } from "@/lib/order-edits";
-import { formatDayAndTime, formatPlacedAt, formatRupees } from "@/lib/format";
+import { formatDayAndTime, formatPhone, formatPlacedAt, formatRupees } from "@/lib/format";
 import { getShopInfo } from "@/lib/shop";
 
 const card =
@@ -113,7 +113,7 @@ export default async function AdminOrderPage({
                 <Button asChild variant="outline" size="sm" className="mt-1">
                   <a href={`tel:+91${order.phone}`}>
                     <PhoneIcon aria-hidden className="size-4" />
-                    {order.phone.slice(0, 5)} {order.phone.slice(5)}
+                    {formatPhone(order.phone)}
                   </a>
                 </Button>
               </Detail>

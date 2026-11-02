@@ -1,12 +1,13 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { DotsThreeIcon, KeyIcon, ListIcon, SignOutIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
+import { DotsThreeIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, SignOutIcon, StorefrontIcon, XIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { AccountMenu } from "@/components/admin/account-menu";
+import { AdminSearch } from "@/components/admin/admin-search";
 import { isActive, NAV_ITEMS, ORDERS_HREF, TAB_ITEMS } from "@/components/admin/nav";
 import { NewOrdersBadge, useNewOrders } from "@/components/admin/new-orders-badge";
 import { ToastProvider } from "@/components/admin/toast";
@@ -17,8 +18,8 @@ const topBarButton =
   "inline-flex min-h-tap min-w-tap items-center justify-center rounded-md focus-visible:outline-topbar-ring";
 
 /**
- * The admin layout. Wide screens: top bar with shop name and account menu, plus a sidebar.
- * Phones: ☰ opens the sidebar as a slide-out menu, and a bottom tab bar holds the main pages.
+ * The admin layout. Wide screens: top bar with shop name, search and account menu, plus a sidebar.
+ * Phones: ☰ opens the sidebar as a slide-out menu, the magnifier opens search, and a bottom tab bar holds the main pages.
  */
 export function AdminShell({
   shopName,
@@ -35,6 +36,7 @@ export function AdminShell({
   const pathname = usePathname();
   const newOrderCount = useNewOrders(newOrders);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <ToastProvider>
@@ -52,9 +54,17 @@ export function AdminShell({
                 <StorefrontIcon aria-hidden className="size-6 max-md:hidden" />
                 {shopName}
               </Link>
-              {/* Balances the ☰ button so the shop name stays centred on phones. */}
-              <span aria-hidden className="min-w-tap md:hidden" />
-              <div className="ml-auto max-md:hidden">
+              {/* Also balances the ☰ button so the shop name stays centred on phones. */}
+              <button
+                type="button"
+                aria-label="Search products or orders"
+                onClick={() => setSearchOpen(true)}
+                className={cn(topBarButton, "md:hidden")}
+              >
+                <MagnifyingGlassIcon aria-hidden className="size-6" />
+              </button>
+              <AdminSearch searchOpen={searchOpen} onSearchClose={() => setSearchOpen(false)} />
+              <div className="max-md:hidden">
                 <AccountMenu username={username} />
               </div>
             </div>

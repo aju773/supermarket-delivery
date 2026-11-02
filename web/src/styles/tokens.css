@@ -80,6 +80,10 @@
   --color-topbar-foreground: var(--palette-white);
   /* Focus outline on the dark top bar, where the blue ring is too dark to see. */
   --color-topbar-ring: var(--palette-white);
+  /* The search box on the top bar: a lighter dark field with a visible edge. */
+  --color-topbar-field: var(--palette-grey-800);
+  --color-topbar-field-foreground: var(--palette-white);
+  --color-topbar-field-border: var(--palette-grey-600);
   --color-brand: var(--palette-green-700);
   --color-brand-foreground: var(--palette-white);
   /* Error messages: red text in a pale red box. */

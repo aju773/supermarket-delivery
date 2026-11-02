@@ -241,6 +241,12 @@ def write_product(data: ProductIn, product: Product | None) -> Status:
     return Status(201 if is_new else 200, products_with_options().get(id=product.id))
 
 
+def matching(products, q: str):
+    """Products whose name contains `q` (any case) or that have a visible Pack Option with exactly this code."""
+    code_matches = PackOption.objects.filter(code=q, is_visible=True).values("product_id")
+    return products.filter(Q(name__icontains=q) | Q(id__in=code_matches))
+
+
 @router.get("/products", response=list[ProductOut])
 @paginate(PageNumberPagination, page_size=PRODUCT_PAGE_SIZE, max_page_size=PRODUCT_PAGE_SIZE)
 def list_products(request, q: str = "", category_id: int | None = None):
@@ -248,8 +254,7 @@ def list_products(request, q: str = "", category_id: int | None = None):
     if category_id is not None:
         products = products.filter(category_id=category_id)
     if q := q.strip():
-        code_matches = PackOption.objects.filter(code=q, is_visible=True).values("product_id")
-        products = products.filter(Q(name__icontains=q) | Q(id__in=code_matches))
+        products = matching(products, q)
     return products
 
 
