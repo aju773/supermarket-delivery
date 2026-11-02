@@ -11,11 +11,12 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
 
   const waitingTile = page.getByRole("term").filter({ hasText: "Waiting to confirm" }).locator("xpath=following-sibling::dd[1]");
   const ordersTile = page.getByRole("term").filter({ hasText: "Today's orders" }).locator("xpath=following-sibling::dd[1]");
-  const ordersLink = page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: /^Orders/ });
+  // The test runs on a phone, where the sidebar sits in the closed ☰ menu and the badge shows on the tab bar.
+  const ordersLink = page.getByRole("navigation", { name: "Main pages" }).getByRole("link", { name: /Orders$/ });
   const waiting = Number(await waitingTile.textContent());
   const today = Number(await ordersTile.textContent());
   // The badge is hidden at zero, and otherwise matches the tile.
-  await expect(ordersLink).toHaveText(waiting ? new RegExp(`^Orders\\s*${waiting}`) : /^Orders$/);
+  await expect(ordersLink).toHaveAccessibleName(waiting ? new RegExp(`^${waiting} new orders? Orders$`) : "Orders");
 
   // A customer orders in another browser while the Orders page stays open.
   const customer = await browser.newPage();
@@ -24,7 +25,7 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
   await customer.getByRole("link", { name: /View cart/ }).click();
   await customer.getByRole("link", { name: /Checkout/ }).click();
   await customer.getByLabel("Name").fill("Meena Live");
-  await customer.getByLabel("Phone").fill("9876501234");
+  await customer.getByLabel("Phone").fill(`9${String(Date.now()).slice(-9)}`);
   await customer.getByLabel("Area").selectOption({ label: area });
   await customer.getByLabel("Address").fill("4 Market Road");
   await customer.getByRole("button", { name: /Place order/ }).click();
@@ -32,14 +33,15 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
   const number = heading!.replace("Order #", "");
   await customer.close();
 
-  const row = page.getByRole("region", { name: "Orders" }).getByRole("row", { name: new RegExp(`#${number}\\b`) });
+  // On a phone the Orders are a list of cards; the table only shows from the md breakpoint up.
+  const row = page.getByRole("list", { name: "Orders" }).getByRole("listitem").filter({ hasText: new RegExp(`#${number}(?!\\d)`) });
   await expect(row).toContainText("Meena Live", { timeout: 15_000 });
   // The tiles and the badge refresh with the list.
   // At least one more: the shop's database is shared, so other Orders may arrive during the run.
   await expect.poll(async () => Number(await waitingTile.textContent())).toBeGreaterThan(waiting);
   await expect.poll(async () => Number(await ordersTile.textContent())).toBeGreaterThan(today);
   await expect(ordersLink).toContainText(/\d/);
-  await row.getByRole("link", { name: `#${number}` }).click();
+  await row.getByRole("link", { name: new RegExp(`^#${number}\\b`) }).click();
 
   for (const [action, status] of [
     ["Confirm order", "Confirmed"],
@@ -50,5 +52,5 @@ test("a new order appears in the live list and staff move it to Delivered", asyn
     await expect(page.getByText(`Order ${status.toLowerCase()}`).first()).toBeVisible();
   }
   await page.goto("/admin/orders?status=delivered");
-  await expect(page.getByRole("region", { name: "Orders" })).toContainText(`#${number}`);
+  await expect(page.getByRole("list", { name: "Orders" })).toContainText(`#${number}`);
 });

@@ -14,7 +14,7 @@ test("My orders lists a placed order and Reorder fills the Cart", async ({ page 
   await page.getByRole("link", { name: /View cart/ }).click();
   await page.getByRole("link", { name: /Checkout · ₹270/ }).click();
   await page.getByLabel("Name").fill("Asha");
-  await page.getByLabel("Phone").fill("+91 98765 43210");
+  await page.getByLabel("Phone").fill(`+91 9${String(Date.now()).slice(-9)}`);
   await page.getByLabel("Area").selectOption({ label: area });
   await page.getByLabel("Address").fill("12 Temple Street");
   await page.getByLabel("UPI").check();

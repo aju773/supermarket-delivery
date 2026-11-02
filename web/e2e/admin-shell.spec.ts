@@ -23,7 +23,8 @@ test("on a phone, staff log in to Orders, use the tab bar and ☰ menu, and log 
   await logIn(page, createStaffMember());
 
   await expect(page.getByRole("heading", { name: "Orders" })).toBeVisible();
-  await expect(page.getByText("No orders yet.")).toBeVisible();
+  // The shop's database is shared, so there may already be Orders.
+  await expect(page.getByText("No orders yet.").or(page.getByRole("list", { name: "Orders" }))).toBeVisible();
 
   const tabs = page.getByRole("navigation", { name: "Main pages" });
   await expect(tabs.getByRole("link", { name: "Orders" })).toHaveAttribute("aria-current", "page");

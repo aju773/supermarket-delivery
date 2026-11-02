@@ -19,7 +19,7 @@ test("customer adds to the cart, checks out and sees the status page", async ({ 
   await page.getByRole("button", { name: "Place order · ₹270" }).click();
   await expect(page.getByText("Enter a 10-digit mobile number.")).toBeVisible();
 
-  await page.getByLabel("Phone").fill("+91 98765 43210");
+  await page.getByLabel("Phone").fill(`+91 9${String(Date.now()).slice(-9)}`);
   await page.getByRole("button", { name: "Place order · ₹270" }).click();
 
   await expect(page.getByRole("heading", { name: "Order placed" })).toBeVisible();
