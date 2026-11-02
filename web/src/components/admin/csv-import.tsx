@@ -6,7 +6,6 @@ import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
 import { EmptyState } from "@/components/admin/empty-state";
 import { FormError } from "@/components/admin/form-error";
-import { PageHeader } from "@/components/admin/page-header";
 import { useToast } from "@/components/admin/toast";
 import { Button } from "@/components/ui/button";
 import { adminUpload, errorDetail } from "@/lib/admin-api";
@@ -80,10 +79,9 @@ export function CsvImport() {
 
   return (
     <>
-      <PageHeader
-        title="Import products"
-        description="Upload the product export from the billing software. You see what changes before anything is saved."
-      />
+      <p className="mb-4 text-sm text-muted-foreground md:mb-6">
+        Upload the product export from the billing software. You see what changes before anything is saved.
+      </p>
       <input ref={input} type="file" accept=".csv,text/csv" hidden aria-label="CSV file" onChange={onPick} />
       <FormError message={error} />
       {!preview || !file ? (

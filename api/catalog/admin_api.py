@@ -6,7 +6,7 @@ from ninja.files import UploadedFile
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.security import django_auth
 
-from catalog import csv_import, photos
+from catalog import bulk_photos, csv_import, photos
 from catalog.models import Category, PackOption, Product
 
 # Every admin endpoint needs a staff session; django_auth also checks the CSRF token on writes.
@@ -361,3 +361,29 @@ def apply_import(request, file: File[UploadedFile]):
         return Status(400, {"detail": str(error)})
     except IntegrityError:  # Someone else took one of the new codes while the import ran.
         return Status(400, {"detail": "A product code changed while importing, so nothing was imported. Choose the file again."})
+
+
+# Bulk photo upload
+
+class PhotoMatch(Schema):
+    filename: str
+    code: str
+    product: str
+    pack_label: str
+    thumbnail_url: str
+
+
+class PhotoMiss(Schema):
+    filename: str
+    reason: str
+
+
+class PhotoImportResult(Schema):
+    matched: list[PhotoMatch]
+    unmatched: list[PhotoMiss]
+
+
+@router.post("/import/photos", response=PhotoImportResult)
+def import_photos(request, files: File[list[UploadedFile]]):
+    """Sets product photos from image files or zips named by pack option code. Reports the files that didn't match."""
+    return bulk_photos.import_photos(files)

@@ -25,10 +25,12 @@ export function adminSend(method: "POST" | "PUT" | "PATCH" | "DELETE", path: str
   return send(method, path, { "Content-Type": "application/json" }, JSON.stringify(body ?? {}));
 }
 
-/** POSTs files as a multipart form, e.g. `{ photo: file }`; the browser sets the content type. */
-export function adminUpload(path: string, files: Record<string, File>): Promise<Response> {
+/** POSTs files as a multipart form, e.g. `{ photo: file }` or `{ files: [a, b] }`; the browser sets the content type. */
+export function adminUpload(path: string, files: Record<string, File | File[]>): Promise<Response> {
   const form = new FormData();
-  for (const [field, file] of Object.entries(files)) form.append(field, file);
+  for (const [field, value] of Object.entries(files)) {
+    for (const file of Array.isArray(value) ? value : [value]) form.append(field, file);
+  }
   return send("POST", path, {}, form);
 }
 
