@@ -35,6 +35,7 @@ export type OrderSummary = {
 };
 
 export type AdminOrderLine = {
+  pack_option_id: number;
   product_name: string;
   pack_label: string;
   unit_price_paise: number;
@@ -53,6 +54,8 @@ export type AdminOrder = OrderSummary & {
   note: string;
   payment_method: PaymentMethod;
   lines: AdminOrderLine[];
+  /** The lines as the customer submitted them; never changed by edits. */
+  original_request: Omit<AdminOrderLine, "line_total_paise">[];
   subtotal_paise: number;
   delivery_charge_paise: number;
   history: HistoryEntry[];

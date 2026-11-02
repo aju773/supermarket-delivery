@@ -116,8 +116,12 @@ def test_detail_has_everything_needed_to_pack_and_deliver(staff, client, area, t
         "is_after_hours": False,
         "call_to_confirm": True,
         "lines": [
-            {"product_name": "Tomato", "pack_label": "1 kg", "unit_price_paise": 4000, "quantity": 2, "line_total_paise": 8000},
-            {"product_name": "Milk", "pack_label": "500 ml", "unit_price_paise": 2850, "quantity": 3, "line_total_paise": 8550},
+            {"pack_option_id": tomato.id, "product_name": "Tomato", "pack_label": "1 kg", "unit_price_paise": 4000, "quantity": 2, "line_total_paise": 8000},
+            {"pack_option_id": milk.id, "product_name": "Milk", "pack_label": "500 ml", "unit_price_paise": 2850, "quantity": 3, "line_total_paise": 8550},
+        ],
+        "original_request": [
+            {"pack_option_id": tomato.id, "product_name": "Tomato", "pack_label": "1 kg", "unit_price_paise": 4000, "quantity": 2},
+            {"pack_option_id": milk.id, "product_name": "Milk", "pack_label": "500 ml", "unit_price_paise": 2850, "quantity": 3},
         ],
         "subtotal_paise": 16550,
         "delivery_charge_paise": 2000,

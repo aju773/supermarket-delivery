@@ -1,9 +1,10 @@
-import { ArrowLeftIcon, PhoneIcon } from "@phosphor-icons/react/ssr";
+import { ArrowLeftIcon, InfoIcon, PhoneIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { OrderActions } from "@/components/admin/order-actions";
+import { OrderLines } from "@/components/admin/order-lines";
 import { OrderBadges } from "@/components/admin/order-badges";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   type AdminOrder,
 } from "@/lib/admin-orders";
 import { adminGet } from "@/lib/admin-session";
+import { originalRequestChanges } from "@/lib/order-edits";
 import { formatDayAndTime, formatPlacedAt, formatRupees } from "@/lib/format";
 import { getShopInfo } from "@/lib/shop";
 
@@ -30,6 +32,8 @@ export default async function AdminOrderPage({
     adminGet<AdminOrder>(`/orders/${number}`),
     getShopInfo(),
   ]);
+
+  const changes = originalRequestChanges(order.original_request, order.lines);
 
   return (
     <>
@@ -54,45 +58,52 @@ export default async function AdminOrderPage({
             aria-labelledby="lines-heading"
             className={`${card} md:col-span-2`}
           >
-            <h2 id="lines-heading" className="mb-3 text-lg font-semibold">
-              Items
-            </h2>
-            <ul className="flex flex-col">
-              {order.lines.map((line, index) => (
-                <li
-                  key={index}
-                  className="flex items-start justify-between gap-4 border-border py-3 not-first:border-t-hairline"
-                >
-                  <span className="flex flex-col">
-                    <span className="font-medium">{line.product_name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {line.pack_label} · {line.quantity} ×{" "}
-                      {formatRupees(line.unit_price_paise)}
-                    </span>
-                  </span>
-                  <span className="font-semibold">
-                    {formatRupees(line.line_total_paise)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <dl className="mt-2 flex flex-col gap-1 border-t-hairline border-border pt-3">
-              <div className="flex justify-between text-muted-foreground">
-                <dt>Subtotal</dt>
-                <dd>{formatRupees(order.subtotal_paise)}</dd>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <dt>Delivery charge</dt>
-                <dd>{formatRupees(order.delivery_charge_paise)}</dd>
-              </div>
-              <div className="flex justify-between text-lg font-bold">
-                <dt>Total</dt>
-                <dd>{formatRupees(order.total_paise)}</dd>
-              </div>
-            </dl>
+            <OrderLines order={order} />
           </section>
 
-          <section aria-labelledby="customer-heading" className={card}>
+          {changes.length > 0 && (
+            <section
+              aria-labelledby="original-heading"
+              className={`${card} md:col-span-2`}
+            >
+              <h2 id="original-heading" className="mb-3 text-lg font-semibold">
+                Original request
+              </h2>
+              <ul className="mb-3 flex flex-col">
+                {order.original_request.map((line) => (
+                  <li
+                    key={line.pack_option_id}
+                    className="flex justify-between gap-4 border-border py-2 text-muted-foreground not-first:border-t-hairline"
+                  >
+                    <span>
+                      {line.product_name} · {line.pack_label} · {line.quantity}{" "}
+                      × {formatRupees(line.unit_price_paise)}
+                    </span>
+                    <span>
+                      {formatRupees(line.unit_price_paise * line.quantity)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <h3 className="mb-2 font-semibold">What changed</h3>
+              <ul className="flex flex-col gap-2">
+                {changes.map((change) => (
+                  <li
+                    key={change}
+                    className="flex items-start gap-2 rounded-md border-hairline border-status-new-foreground bg-status-new px-3 py-2 text-status-new-foreground"
+                  >
+                    <InfoIcon aria-hidden className="mt-1 size-5 shrink-0" />
+                    {change}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section
+            aria-labelledby="customer-heading"
+            className={`${card} md:col-start-3 md:row-start-1`}
+          >
             <h2 id="customer-heading" className="mb-3 text-lg font-semibold">
               Customer
             </h2>

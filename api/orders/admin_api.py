@@ -5,9 +5,11 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router, Schema
 from ninja.pagination import PageNumberPagination, paginate
+from ninja.responses import Status
 from ninja.security import django_auth
 
 from orders.api import Problem
+from orders.edits import EditNotAllowed, InvalidLines, LineIn, edit_lines
 from orders.models import Order, StatusChange
 from orders.status import NotAllowed, change_status
 from shop.models import ShopSettings
@@ -43,6 +45,7 @@ class OrderSummary(Schema):
 
 
 class OrderLineOut(Schema):
+    pack_option_id: int
     product_name: str
     pack_label: str
     unit_price_paise: int
@@ -52,6 +55,14 @@ class OrderLineOut(Schema):
     @staticmethod
     def resolve_line_total_paise(line) -> int:
         return line.total_paise
+
+
+class OriginalLine(Schema):
+    pack_option_id: int
+    product_name: str
+    pack_label: str
+    unit_price_paise: int
+    quantity: int
 
 
 class HistoryEntry(Schema):
@@ -76,6 +87,8 @@ class OrderDetail(OrderSummary):
     note: str
     payment_method: str
     lines: list[OrderLineOut]
+    # What the customer submitted, never changed by edits.
+    original_request: list[OriginalLine]
     subtotal_paise: int
     delivery_charge_paise: int
     history: list[HistoryEntry]
@@ -203,4 +216,26 @@ def set_status(request, number: int, data: StatusIn):
         change_status(order, data.status, by=request.user)
     except NotAllowed as error:
         return 409, {"detail": str(error)}
+    return order_detail(number)
+
+
+class LineEdit(Schema):
+    pack_option_id: int
+    quantity: int
+
+
+class LinesIn(Schema):
+    lines: list[LineEdit]
+
+
+@router.put("/orders/{number}/lines", response={200: OrderDetail, 409: Problem, 422: Problem})
+def set_lines(request, number: int, data: LinesIn):
+    """Replaces the Order's lines while it is New or Confirmed; new Pack Options are added at their current price."""
+    order = get_object_or_404(Order, id=number)
+    try:
+        edit_lines(order, [LineIn(**line.dict()) for line in data.lines])
+    except EditNotAllowed as error:
+        return Status(409, {"detail": str(error)})
+    except InvalidLines as error:
+        return Status(422, {"detail": str(error)})
     return order_detail(number)
