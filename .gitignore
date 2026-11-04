@@ -16,3 +16,4 @@ web/playwright-report/
 web/next-env.d.ts
 *.tsbuildinfo
 .env.prod
+test-results/
