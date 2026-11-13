@@ -1,46 +1,32 @@
-# Supermarket delivery
+# Supermarket Delivery
 
-A delivery ordering website for a local supermarket. Customers browse the catalogue on their phone and place an order for home delivery; staff run the shop from an admin that shows new orders as they arrive.
+A delivery ordering website for a local supermarket. Customers order groceries from their phone; staff manage every order from a live admin.
 
-Built for a real shop brief, end to end: spec, design, API, storefront, admin, tests and a production deployment with backups.
+<!-- To play inline on GitHub: drag docs/demo.mp4 into the README editor on github.com and replace this link with the user-attachments URL it gives you. -->
+[![Demo: a customer places an order and staff move it to Delivered](docs/demo-poster.jpg)](docs/demo.mp4)
 
-| Customer storefront | Staff admin |
-| --- | --- |
-| ![Customer home screen](docs/design/screens/customer-home.png) | ![Staff orders list](docs/design/screens/admin-orders.png) |
+## Core functionality
 
-<sub>Design reference screens from `docs/design/`. The build follows them for layout.</sub>
+**Customer (phone)**
 
-## What it does
+- Browse categories, search the catalogue and pick a pack size on each product
+- Cart with a running total, delivery charge and the shop's minimum order
+- Checkout with name, phone, delivery area, address and Cash or UPI at delivery
+- If a price or stock changes after an item is added, the customer sees it before the order is placed
+- A private status link that follows the order from Placed to Delivered, plus order history and reorder
 
-**For customers**
+**Staff (admin)**
 
-- Browse by category and search the catalogue
-- Cart with pack sizes, checkout by delivery area
-- Order status page, order history and one-tap reorder
-- Checkout safeguards: a price or stock change since the cart was filled is shown before the order is placed
+- Live orders list with sound alerts and a new-orders badge
+- Confirm, edit, cancel and move orders through Confirmed, Out for delivery and Delivered
+- Manage products, photos, categories, delivery areas, shop settings and staff accounts
+- CSV product import, bulk photo upload and global search across orders and products
 
-**For staff**
+## Tech stack
 
-- Live orders list with alerts and a new-orders badge
-- Move orders through their statuses, edit order lines, cancel
-- Manage products, photos, categories, delivery areas and shop settings
-- Global search across orders and products
+[![Tech stack](https://skillicons.dev/icons?i=py,django,postgres,ts,react,nextjs,tailwind,docker,pnpm)](#tech-stack)
 
-## Stack
-
-| Part | Built with |
-| --- | --- |
-| API (`api/`) | Django, Django Ninja, PostgreSQL, pytest, uv |
-| Web (`web/`) | Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, Playwright, pnpm |
-| Proxy (`proxy/`) | Caddy: `/api` goes to Django, everything else to Next.js |
-| Deploy (`ops/`, `compose.prod.yaml`) | Docker Compose on a single ARM server, images built by GitHub Actions, nightly backups to two destinations |
-
-## Things worth a look
-
-- **One design-token file.** Every colour, size and spacing value lives in `web/src/styles/tokens.css`. A CI check fails the build on any hard-coded value, and another checks every text/background pair against WCAG AA.
-- **Decisions are written down.** See `docs/adr/` for why the components are our own and why Tailwind's colour palette was removed.
-- **Spec and tickets are in the repo.** `.scratch/delivery-v1/spec.md` is the full spec; each ticket beside it is one vertical slice.
-- **Backups are rehearsed.** `ops/drill.sh` runs a backup and a restore locally with Docker only.
+<sub>Also: Django Ninja, shadcn/ui, Playwright, pytest, uv, Caddy</sub>
 
 ## Run locally
 
@@ -51,15 +37,15 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The site is at http://localhost:8090 (`PROXY_PORT` in `.env`).
+The site is at http://localhost:8090 (`PROXY_PORT` in `.env`) and the staff admin at http://localhost:8090/admin.
 
-The staff admin is at http://localhost:8090/admin. Create the first Staff Member from the command line; after that, staff add each other from the admin:
+Create the first staff member from the command line; after that, staff add each other from the admin:
 
 ```bash
 docker compose exec api python manage.py createsuperuser --email ""
 ```
 
-## Tests and checks
+## Checks and tests
 
 ```bash
 docker compose run --rm api pytest      # API tests against Postgres
@@ -70,7 +56,3 @@ cd web && pnpm test:unit && pnpm typecheck
 ```
 
 Playwright needs its browser once: `cd web && pnpm exec playwright install chromium`.
-
-## Deployment
-
-Production runs on a single ARM server with `compose.prod.yaml`; see `docs/deployment.md` for setup, updates, backups, restore and handover.
