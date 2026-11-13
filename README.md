@@ -2,8 +2,7 @@
 
 A delivery ordering website for a local supermarket. Customers order groceries from their phone; staff manage every order from a live admin.
 
-<!-- To play inline on GitHub: drag docs/demo.mp4 into the README editor on github.com and replace this link with the user-attachments URL it gives you. -->
-[![Demo: a customer places an order and staff move it to Delivered](docs/demo-poster.jpg)](docs/demo.mp4)
+https://github.com/user-attachments/assets/5eec3f2c-99ae-4f6e-b563-5a29a343ef86
 
 ## Core functionality
 
